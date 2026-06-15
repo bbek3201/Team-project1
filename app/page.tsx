@@ -1,8 +1,8 @@
 export default function Home() {
   return (
-    <div className="w-30 h-6 flex justify-center items-center rounded-md bg-amber-600">
-    <p>wwwwwww</p>
-    <p>w</p>
-   </div>
-   );
+    <div className="w-3 h-6 bg-amber-600">
+      <p>wwwwwww</p>
+      <p>buh aida</p>
+    </div>
+  );
 }
