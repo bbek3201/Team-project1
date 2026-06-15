@@ -39,6 +39,8 @@ const router = useRouter()
             <p>Continue</p>
           </button>
         </div>
+
+        <p>Text P <Tag></Tag></p>
       </div>
     </div>
    </div>
