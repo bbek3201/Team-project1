@@ -4,7 +4,7 @@ import { Mainlogo } from "../components/mainlogo";
 export default function Home() {
   return (
    <div className="w-full h-screen flex">
-    <div className="w-177.5 h-236 flex flex-col bg-[#FBBF24] justify-center items-center">
+    <div className="w-full h-screen flex flex-col bg-[#FBBF24] justify-center items-center">
       <div className="absolute flex gap-2 top-8 left-20">
         <Coffeelogo/>
         <p className="font-bold text-[16px]">Buy Me Coffee</p>
@@ -17,7 +17,7 @@ export default function Home() {
         </div>
       </div>
     </div>
-    <div className="w-177.5 h-236 flex flex-col justify-center items-center">
+    <div className="w-full h-screen flex flex-col justify-center items-center">
       <div className="h-64 w-101.75 flex flex-col">
         <button className="absolute top-8 right-20 rounded-md py-2 px-4 bg-[#F4F4F5] cursor-pointer">
           <p className="font-medium text-[14px]">Log in</p>
