@@ -32,11 +32,11 @@ const router = useRouter()
         </div>
         <div className="flex flex-col gap-2 pt-0 p-6">
           <p className="font-medium text-[14px]">Email</p>
-          <input className="px-3 py-2 border border-[#E4E4E7] rounded-md text-[#71717A]" type="text" placeholder="Enter username here" />
+          <input className="px-3 py-2 border border-[#E4E4E7] rounded-md text-[#71717A]" type="text" placeholder="Enter email here" />
         </div>
         <div className="flex flex-col gap-2 pt-0 p-6">
           <p className="font-medium text-[14px]">Password</p>
-          <input className="px-3 py-2 border border-[#E4E4E7] rounded-md text-[#71717A]" type="text" placeholder="Enter username here" />
+          <input className="px-3 py-2 border border-[#E4E4E7] rounded-md text-[#71717A]" type="text" placeholder="Enter password here" />
         </div>
         <div className="flex flex-col pt-0 p-6">
           <button className="rounded-md flex items-center justify-center text-white bg-black h-10 w-full cursor-pointer">
