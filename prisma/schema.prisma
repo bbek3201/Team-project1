@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+
+}
+
+model User {
+  id                Int        @id @default(autoincrement())
+  email             String     @unique
+  password          String
+  username          String     @unique
+  receivedDonations Int        @default(0)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  
+  profile           Profile?   @relation(fields: [profileId], references: [id])
+  profileId         Int?       @unique
+  bankCard          BankCard?  @relation(fields: [bankCardId], references: [id])
+  bankCardId        Int?       @unique
+}
+
+model BankCard {
+  id         Int      @id @default(autoincrement())
+  country    String
+  firstName  String
+  lastName   String
+  cardNumber String
+  expiryDate DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  user       User?
+}
+
+model Profile {
+  id              Int      @id @default(autoincrement())
+  name            String
+  about           String
+  avatarImage     String
+  socialMediaURL  String
+  backgroundImage String
+  successMessage  String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  user            User?
+}
+
+model Donation {
+  id                      Int      @id @default(autoincrement())
+  amount                  Int
+  specialMessage          String
+  socialURLOrBuyMeACoffee String
+  donerId                 Int
+  recipientId             Int
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
