@@ -1,46 +1,162 @@
-"use client"
+"use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Coffeelogo } from "../components/coffeelogo";
-import { Mainlogo } from "../components/mainlogo";
+import Link from "next/link";
 
-export default function Home() {
-const router = useRouter()
+export default function SignUpPage() {
+  const router = useRouter();
+  const [step, setStep] = useState<1 | 2>(1);
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleUsernameContinue() {
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/check-username", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error);
+        return;
+      }
+      setStep(2);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSignupContinue() {
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error);
+        return;
+      }
+      router.push("/");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
-   <div className="w-full h-screen flex">
-    <div className="w-full h-screen flex flex-col bg-[#FBBF24] justify-center items-center">
-      <div className="absolute flex gap-2 top-8 left-20">
-        <Coffeelogo/>
-        <p className="font-bold text-[16px]">Buy Me Coffee</p>
-      </div>
-      <div className="w-113.75 h-92.5 flex flex-col justify-center items-center gap-10">
-        <Mainlogo/>
-        <div className="flex flex-col text-center gap-3">
-          <p className="font-bold text-2xl">Fund your creative work</p>
-          <p className="font-normal text-[16px]">Accept support. Start a membership. Setup a shop. It’s easier than you think.</p>
+    <div className="relative min-h-screen">
+      <header className="absolute left-0 right-0 top-0 z-10 flex items-center justify-between px-12 py-6">
+        <div className="flex items-center gap-2 text-lg font-bold">
+          <img
+            src="coffee.svg
+"
+            alt=""
+          />
+          <span>Buy Me Coffee</span>
+        </div>
+        <Link
+          href="/login"
+          className="rounded-md bg-white px-5 py-2 font-medium text-gray-800 shadow-sm"
+        >
+          Log in
+        </Link>
+      </header>
+
+      <div className="flex min-h-screen">
+        <div className="flex w-1/2 flex-col items-center justify-center bg-amber-400 px-12 text-center">
+          <div className="mb-10 flex h-40 w-40 items-center justify-center rounded-full bg-amber-500">
+            <img src="illustration.svg" alt="" />
+          </div>
+          <h1 className="mb-4 text-4xl font-bold">Fund your creative work</h1>
+          <p className="max-w-md text-lg">
+            Accept support. Start a membership. Setup a shop. It&apos;s easier
+            than you think.
+          </p>
+        </div>
+
+        <div className="flex w-1/2 items-center justify-center px-12">
+          <div className="w-full max-w-sm">
+            {step === 1 ? (
+              <>
+                <h2 className="mb-2 text-3xl font-bold">Create Your Account</h2>
+                <p className="mb-6 text-gray-500">
+                  Choose a username for your page
+                </p>
+
+                <label className="mb-1 block font-medium">Username</label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter username here"
+                  className={`mb-2 w-full rounded-md border px-4 py-3 outline-none ${
+                    error ? "border-red-400" : "border-gray-300"
+                  }`}
+                />
+                {error && (
+                  <p className="mb-4 text-sm text-red-500">⊗ {error}</p>
+                )}
+
+                <button
+                  onClick={handleUsernameContinue}
+                  disabled={!username || loading}
+                  className="w-full rounded-md bg-gray-300 py-3 font-medium text-gray-700 disabled:opacity-60 enabled:bg-black enabled:text-white"
+                >
+                  {loading ? "Checking..." : "Continue"}
+                </button>
+              </>
+            ) : (
+              <>
+                <h2 className="mb-2 text-3xl font-bold">Welcome, {username}</h2>
+                <p className="mb-6 text-gray-500">
+                  Connect email and set a password
+                </p>
+
+                <label className="mb-1 block font-medium">Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter email here"
+                  className={`mb-2 w-full rounded-md border px-4 py-3 outline-none ${
+                    error ? "border-red-400" : "border-gray-300"
+                  }`}
+                />
+                {error && (
+                  <p className="mb-4 text-sm text-red-500">⊗ {error}</p>
+                )}
+
+                <label className="mb-1 block font-medium">Password</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter password here"
+                  className="mb-6 w-full rounded-md border border-gray-300 px-4 py-3 outline-none"
+                />
+
+                <button
+                  onClick={handleSignupContinue}
+                  disabled={!email || !password || loading}
+                  className="w-full rounded-md bg-gray-300 py-3 font-medium text-gray-700 disabled:opacity-60 enabled:bg-black enabled:text-white"
+                >
+                  {loading ? "Creating..." : "Continue"}
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>
-    <div className="w-full h-screen flex flex-col justify-center items-center">
-      <div className="h-min-64 w-101.75 flex flex-col">
-        <button onClick={() => router.push('/login')} className="absolute top-8 right-20 rounded-md py-2 px-4 bg-[#F4F4F5] cursor-pointer">
-          <p className="font-medium text-[14px]">Log in</p>
-        </button>
-        <div className="flex flex-col gap-1.5 p-6">
-          <p className="font-semibold text-2xl">Create Your Account</p>
-          <p className="font-normal text-[14px] text-[#71717A]">Choose a username for your page</p>
-        </div>
-        <div className="flex flex-col gap-2 pt-0 p-6">
-          <p className="font-medium text-[14px]">Username</p>
-          <input className="px-3 py-2 border border-[#E4E4E7] rounded-md text-[#71717A]" type="text" placeholder="Enter username here" />
-        </div>
-        <div className="flex flex-col pt-0 p-6">
-          <button className="rounded-md flex items-center justify-center text-white bg-black h-10 w-full cursor-pointer">
-            <p>Continue</p>
-          </button>
-        </div>
-      </div>
-    </div>
-   </div>
   );
 }
