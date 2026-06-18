@@ -4,6 +4,11 @@
 /node_modules
 /.pnp
 .pnp.*
+
+# use bun as the package manager (avoid mixing lockfiles)
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
