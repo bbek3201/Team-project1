@@ -3,15 +3,18 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useUser } from "../providers/user-provider";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { refresh } = useUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleLogin() {
+  async function handleLogin(e?: React.FormEvent) {
+    e?.preventDefault();
     setError("");
     setLoading(true);
     try {
@@ -25,10 +28,11 @@ export default function LoginPage() {
         setError(data.error);
         return;
       }
+      await refresh();
       if (data.hasProfile) {
-        router.push("/complete-profile");
-      } else {
         router.push("./");
+      } else {
+        router.push("/complete-profile");
       }
     } finally {
       setLoading(false);
@@ -74,32 +78,34 @@ export default function LoginPage() {
           <div className="w-full max-w-sm">
             <h2 className="mb-6 text-3xl font-bold">Welcome back</h2>
 
-            <label className="mb-1 block font-medium">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter email here"
-              className="mb-4 w-full rounded-md border border-gray-300 px-4 py-3 outline-none"
-            />
+            <form onSubmit={handleLogin}>
+              <label className="mb-1 block font-medium">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter email here"
+                className="mb-4 w-full rounded-md border border-gray-300 px-4 py-3 outline-none"
+              />
 
-            <label className="mb-1 block font-medium">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter password here"
-              className="mb-2 w-full rounded-md border border-gray-300 px-4 py-3 outline-none"
-            />
-            {error && <p className="mb-4 text-sm text-red-500">⊗ {error}</p>}
+              <label className="mb-1 block font-medium">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter password here"
+                className="mb-2 w-full rounded-md border border-gray-300 px-4 py-3 outline-none"
+              />
+              {error && <p className="mb-4 text-sm text-red-500">⊗ {error}</p>}
 
-            <button
-              onClick={handleLogin}
-              disabled={!email || !password || loading}
-              className="w-full rounded-md bg-black py-3 font-medium text-white disabled:opacity-60"
-            >
-              {loading ? "Signing in..." : "Continue"}
-            </button>
+              <button
+                type="submit"
+                disabled={!email || !password || loading}
+                className="w-full rounded-md bg-black py-3 font-medium text-white disabled:opacity-60"
+              >
+                {loading ? "Signing in..." : "Continue"}
+              </button>
+            </form>
           </div>
         </div>
       </div>

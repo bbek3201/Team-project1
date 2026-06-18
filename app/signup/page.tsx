@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useUser } from "../providers/user-provider";
 
 export default function SignUpPage() {
   const router = useRouter();
+  const { refresh } = useUser();
   const [step, setStep] = useState<1 | 2>(1);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -13,7 +15,8 @@ export default function SignUpPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleUsernameContinue() {
+  async function handleUsernameContinue(e?: React.FormEvent) {
+    e?.preventDefault();
     setError("");
     setLoading(true);
     try {
@@ -33,7 +36,8 @@ export default function SignUpPage() {
     }
   }
 
-  async function handleSignupContinue() {
+  async function handleSignupContinue(e?: React.FormEvent) {
+    e?.preventDefault();
     setError("");
     setLoading(true);
     try {
@@ -47,6 +51,7 @@ export default function SignUpPage() {
         setError(data.error);
         return;
       }
+      await refresh();
       if (data.hasProfile) {
         router.push("/");
       } else {
@@ -97,27 +102,29 @@ export default function SignUpPage() {
                   Choose a username for your page
                 </p>
 
-                <label className="mb-1 block font-medium">Username</label>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter username here"
-                  className={`mb-2 w-full rounded-md border px-4 py-3 outline-none ${
-                    error ? "border-red-400" : "border-gray-300"
-                  }`}
-                />
-                {error && (
-                  <p className="mb-4 text-sm text-red-500">⊗ {error}</p>
-                )}
+                <form onSubmit={handleUsernameContinue}>
+                  <label className="mb-1 block font-medium">Username</label>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Enter username here"
+                    className={`mb-2 w-full rounded-md border px-4 py-3 outline-none ${
+                      error ? "border-red-400" : "border-gray-300"
+                    }`}
+                  />
+                  {error && (
+                    <p className="mb-4 text-sm text-red-500">⊗ {error}</p>
+                  )}
 
-                <button
-                  onClick={handleUsernameContinue}
-                  disabled={!username || loading}
-                  className="w-full rounded-md bg-gray-300 py-3 font-medium text-gray-700 disabled:opacity-60 enabled:bg-black enabled:text-white"
-                >
-                  {loading ? "Checking..." : "Continue"}
-                </button>
+                  <button
+                    type="submit"
+                    disabled={!username || loading}
+                    className="w-full rounded-md bg-gray-300 py-3 font-medium text-gray-700 disabled:opacity-60 enabled:bg-black enabled:text-white"
+                  >
+                    {loading ? "Checking..." : "Continue"}
+                  </button>
+                </form>
               </>
             ) : (
               <>
@@ -126,36 +133,38 @@ export default function SignUpPage() {
                   Connect email and set a password
                 </p>
 
-                <label className="mb-1 block font-medium">Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter email here"
-                  className={`mb-2 w-full rounded-md border px-4 py-3 outline-none ${
-                    error ? "border-red-400" : "border-gray-300"
-                  }`}
-                />
-                {error && (
-                  <p className="mb-4 text-sm text-red-500">⊗ {error}</p>
-                )}
+                <form onSubmit={handleSignupContinue}>
+                  <label className="mb-1 block font-medium">Email</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter email here"
+                    className={`mb-2 w-full rounded-md border px-4 py-3 outline-none ${
+                      error ? "border-red-400" : "border-gray-300"
+                    }`}
+                  />
+                  {error && (
+                    <p className="mb-4 text-sm text-red-500">⊗ {error}</p>
+                  )}
 
-                <label className="mb-1 block font-medium">Password</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter password here"
-                  className="mb-6 w-full rounded-md border border-gray-300 px-4 py-3 outline-none"
-                />
+                  <label className="mb-1 block font-medium">Password</label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter password here"
+                    className="mb-6 w-full rounded-md border border-gray-300 px-4 py-3 outline-none"
+                  />
 
-                <button
-                  onClick={handleSignupContinue}
-                  disabled={!email || !password || loading}
-                  className="w-full rounded-md bg-gray-300 py-3 font-medium text-gray-700 disabled:opacity-60 enabled:bg-black enabled:text-white"
-                >
-                  {loading ? "Creating..." : "Continue"}
-                </button>
+                  <button
+                    type="submit"
+                    disabled={!email || !password || loading}
+                    className="w-full rounded-md bg-gray-300 py-3 font-medium text-gray-700 disabled:opacity-60 enabled:bg-black enabled:text-white"
+                  >
+                    {loading ? "Creating..." : "Continue"}
+                  </button>
+                </form>
               </>
             )}
           </div>

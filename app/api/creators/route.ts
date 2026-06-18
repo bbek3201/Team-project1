@@ -18,6 +18,8 @@ export async function GET(req: NextRequest) {
       name: u.profile?.name ?? u.username,
       avatar: u.profile?.avatarImage ?? "",
       about: u.profile?.about ?? "",
+      socialMediaURL:
+        u.profile?.socialMediaURL ?? `https://buymeacoffee.com/${u.username}`,
     }));
 
   return NextResponse.json({ creators });
