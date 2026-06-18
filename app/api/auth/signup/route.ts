@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { signToken } from "@/lib/auth";
+
 import bcrypt from "bcrypt";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -52,6 +53,7 @@ export async function POST(req: NextRequest) {
 
   const res = NextResponse.json({
     user: { id: user.id, username: user.username, email: user.email },
+    hasProfile: false,
   });
 
   res.cookies.set("token", token, {
