@@ -25,7 +25,11 @@ export default function LoginPage() {
         setError(data.error);
         return;
       }
-      router.push("/");
+      if (data.hasProfile) {
+        router.push("/");
+      } else {
+        router.push("/complete-profile");
+      }
     } finally {
       setLoading(false);
     }
