@@ -26,9 +26,9 @@ export default function LoginPage() {
         return;
       }
       if (data.hasProfile) {
-        router.push("/");
-      } else {
         router.push("/complete-profile");
+      } else {
+        router.push("./");
       }
     } finally {
       setLoading(false);

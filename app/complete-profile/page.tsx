@@ -6,18 +6,28 @@ import { useRouter } from "next/navigation";
 export default function CompleteProfilePage() {
   const router = useRouter();
   const [avatarImage, setAvatarImage] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [name, setName] = useState("");
   const [about, setAbout] = useState("");
   const [socialMediaURL, setSocialMediaURL] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setAvatarImage(reader.result as string);
-    reader.readAsDataURL(file);
+
+    setUploading(true);
+    try {
+      const response = await fetch(`/api/avatar/upload?filename=${file.name}`, {
+        method: "POST",
+        body: file,
+      });
+      const blob = await response.json();
+      setAvatarImage(blob.url);
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function handleContinue() {
@@ -34,7 +44,7 @@ export default function CompleteProfilePage() {
         setError(data.error);
         return;
       }
-      router.push("/");
+      router.push("/payment-details");
     } finally {
       setLoading(false);
     }
@@ -66,7 +76,9 @@ export default function CompleteProfilePage() {
         <label className="mb-2 block font-medium">Add photo</label>
         <label className="mb-8 block w-fit cursor-pointer">
           <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full bg-gray-200">
-            {avatarImage ? (
+            {uploading ? (
+              <span className="text-sm text-gray-500">Uploading...</span>
+            ) : avatarImage ? (
               <img
                 src={avatarImage}
                 alt=""
@@ -78,7 +90,7 @@ export default function CompleteProfilePage() {
           </div>
           <input
             type="file"
-            accept="image/*"
+            accept="image/jpeg, image/png, image/webp"
             onChange={handlePhotoChange}
             className="hidden"
           />
@@ -112,7 +124,7 @@ export default function CompleteProfilePage() {
 
         <button
           onClick={handleContinue}
-          disabled={!name || !about || !socialMediaURL || loading}
+          disabled={!name || !about || !socialMediaURL || uploading || loading}
           className="mt-4 w-full rounded-md bg-black py-3 font-medium text-white disabled:opacity-60"
         >
           {loading ? "Saving..." : "Continue"}
