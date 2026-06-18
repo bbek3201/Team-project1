@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useUser } from "../providers/user-provider";
 
 // Validation patterns
 // Name: letters, numbers, spaces and a few common punctuation marks, 2–50 chars
@@ -20,6 +21,7 @@ type FieldErrors = {
 
 export default function CompleteProfilePage() {
   const router = useRouter();
+  const { user, loading: userLoading } = useUser();
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState("");
   const [name, setName] = useState("");
@@ -28,6 +30,13 @@ export default function CompleteProfilePage() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Users who already completed their profile shouldn't see this onboarding page
+  useEffect(() => {
+    if (!userLoading && user?.hasProfile) {
+      router.replace("/");
+    }
+  }, [userLoading, user, router]);
 
   function validate(): FieldErrors {
     const errors: FieldErrors = {};
@@ -126,6 +135,11 @@ export default function CompleteProfilePage() {
     `w-full rounded-md border px-4 py-3 outline-none ${
       invalid ? "border-red-400" : "border-gray-300 focus:border-gray-400"
     }`;
+
+  // Avoid flashing the form while we resolve the user or redirect away
+  if (userLoading || user?.hasProfile) {
+    return <div className="min-h-screen" />;
+  }
 
   return (
     <div className="min-h-screen">
