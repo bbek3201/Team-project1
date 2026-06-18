@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "../components/navbar";
 import Sidebar from "../components/sidebar";
+import { Skeleton } from "../components/skeleton";
 
 type Creator = {
   username: string;
@@ -45,7 +46,7 @@ export default function ExplorePage() {
       <div className="mx-auto flex max-w-6xl gap-10 px-8 py-8">
         <Sidebar />
 
-        <main className="flex flex-1 flex-col gap-6">
+        <main className="flex flex-1 flex-col gap-6 mb-28">
           <h1 className="text-xl font-semibold tracking-tight">
             Explore creators
           </h1>
@@ -61,7 +62,11 @@ export default function ExplorePage() {
           </div>
 
           {loading ? (
-            <div className="py-20 text-center text-gray-400">Loading…</div>
+            <div className="flex flex-col gap-6">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <CreatorCardSkeleton key={i} />
+              ))}
+            </div>
           ) : filtered.length === 0 ? (
             <div className="rounded-lg border border-gray-200 py-16 text-center text-gray-500">
               {creators.length === 0
@@ -117,6 +122,31 @@ function CreatorCard({ creator }: { creator: Creator }) {
           <p className="break-all text-sm text-zinc-700">
             {creator.socialMediaURL}
           </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CreatorCardSkeleton() {
+  return (
+    <section className="flex flex-col gap-3 rounded-lg border border-gray-200 p-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <Skeleton className="h-6 w-40" />
+        </div>
+        <Skeleton className="h-9 w-32 rounded-md" />
+      </div>
+      <div className="flex items-start gap-5">
+        <div className="flex flex-1 flex-col gap-2">
+          <Skeleton className="h-5 w-32" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+        </div>
+        <div className="flex flex-1 flex-col gap-2">
+          <Skeleton className="h-5 w-32" />
+          <Skeleton className="h-4 w-2/3" />
         </div>
       </div>
     </section>

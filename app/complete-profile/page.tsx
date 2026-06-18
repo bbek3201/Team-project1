@@ -3,14 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "../providers/user-provider";
+import { Spinner } from "../components/spinner";
 
 // Validation patterns
 // Name: letters, numbers, spaces and a few common punctuation marks, 2–50 chars
 const NAME_REGEX = /^[\p{L}\p{N} .,'-]{2,50}$/u;
-// Social link: a valid http(s) URL
-const URL_REGEX = /^https?:\/\/[^\s/$.?#][^\s]*$/i;
-// About: at least 10 non-whitespace-trimmed characters
-const ABOUT_MIN = 10;
 
 type FieldErrors = {
   photo?: string;
@@ -53,14 +50,10 @@ export default function CompleteProfilePage() {
 
     if (!about.trim()) {
       errors.about = "Please enter info about yourself";
-    } else if (about.trim().length < ABOUT_MIN) {
-      errors.about = `Please write at least ${ABOUT_MIN} characters`;
     }
 
     if (!socialMediaURL.trim()) {
       errors.socialMediaURL = "Please enter a social link";
-    } else if (!URL_REGEX.test(socialMediaURL.trim())) {
-      errors.socialMediaURL = "Please enter a valid URL (https://…)";
     }
 
     return errors;
@@ -194,6 +187,7 @@ export default function CompleteProfilePage() {
           onChange={(e) => setName(e.target.value)}
           onBlur={() => setTouched((t) => ({ ...t, name: true }))}
           placeholder="Enter your name here"
+          maxLength={50}
           className={inputClass(show("name"))}
         />
         <FieldError message={show("name")} className="mb-6 mt-2" />
@@ -227,8 +221,9 @@ export default function CompleteProfilePage() {
         <button
           onClick={handleContinue}
           disabled={!isValid || loading}
-          className="mt-4 w-full rounded-md bg-black py-3 font-medium text-white disabled:opacity-20"
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-black py-3 font-medium text-white disabled:opacity-20"
         >
+          {loading && <Spinner />}
           {loading ? "Saving..." : "Continue"}
         </button>
       </div>

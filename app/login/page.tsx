@@ -4,17 +4,26 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useUser } from "../providers/user-provider";
+import { isValidEmail } from "@/lib/validation";
+import { FieldMessage } from "../components/field-message";
+import { Spinner } from "../components/spinner";
 
 export default function LoginPage() {
   const router = useRouter();
   const { refresh } = useUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [emailTouched, setEmailTouched] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const emailError =
+    email && !isValidEmail(email) ? "Please enter a valid email" : "";
+
   async function handleLogin(e?: React.FormEvent) {
     e?.preventDefault();
+    setEmailTouched(true);
+    if (!isValidEmail(email) || !password) return;
     setError("");
     setLoading(true);
     try {
@@ -79,14 +88,25 @@ export default function LoginPage() {
             <h2 className="mb-6 text-3xl font-bold">Welcome back</h2>
 
             <form onSubmit={handleLogin}>
-              <label className="mb-1 block font-medium">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter email here"
-                className="mb-4 w-full rounded-md border border-gray-300 px-4 py-3 outline-none"
-              />
+              <div className="mb-4">
+                <label className="mb-1 block font-medium">Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => setEmailTouched(true)}
+                  placeholder="Enter email here"
+                  className={`w-full rounded-md border px-4 py-3 outline-none ${
+                    emailTouched && emailError
+                      ? "border-red-400"
+                      : "border-gray-300"
+                  }`}
+                />
+                <FieldMessage
+                  message={emailTouched ? emailError : ""}
+                  className="mt-1.5"
+                />
+              </div>
 
               <label className="mb-1 block font-medium">Password</label>
               <input
@@ -101,8 +121,9 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={!email || !password || loading}
-                className="w-full rounded-md bg-black py-3 font-medium text-white disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-md bg-black py-3 font-medium text-white disabled:opacity-60"
               >
+                {loading && <Spinner />}
                 {loading ? "Signing in..." : "Continue"}
               </button>
             </form>

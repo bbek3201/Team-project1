@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "./components/navbar";
 import Sidebar from "./components/sidebar";
+import { Skeleton } from "./components/skeleton";
 
 type Transaction = {
   id: number;
@@ -124,22 +125,25 @@ export default function DashboardPage() {
         {/* Main */}
         <main className="flex-1">
           {/* Profile + earnings card */}
+          {!data ? (
+            <ProfileEarningsSkeleton />
+          ) : (
           <section className="rounded-lg border border-gray-200 p-6">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex min-w-0 items-center gap-3">
                 <Avatar
                   src={data?.user.avatar}
                   name={data?.user.name ?? ""}
                   size={48}
                 />
-                <div>
-                  <p className="font-bold">{data?.user.name}</p>
-                  <p className="text-sm text-gray-500">{pageUrl}</p>
+                <div className="min-w-0">
+                  <p className="truncate font-bold">{data?.user.name}</p>
+                  <p className="truncate text-sm text-gray-500">{pageUrl}</p>
                 </div>
               </div>
               <button
                 onClick={copyPageLink}
-                className="flex items-center gap-2 rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white"
+                className="flex shrink-0 items-center gap-2 rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white"
               >
                 <CopyIcon />
                 {copied ? "Copied!" : "Share page link"}
@@ -181,6 +185,7 @@ export default function DashboardPage() {
               ${data?.earnings ?? 0}
             </p>
           </section>
+          )}
 
           {/* Recent transactions */}
           <div className="mt-8 flex items-center justify-between">
@@ -221,7 +226,11 @@ export default function DashboardPage() {
 
           <section className="mt-4 rounded-lg border border-gray-200">
             {loading ? (
-              <div className="py-20 text-center text-gray-400">Loading…</div>
+              <ul className="flex flex-col gap-4 p-6">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <TransactionSkeleton key={i} />
+                ))}
+              </ul>
             ) : !data || data.transactions.length === 0 ? (
               <EmptyState />
             ) : (
@@ -258,6 +267,49 @@ export default function DashboardPage() {
         </main>
       </div>
     </div>
+  );
+}
+
+function ProfileEarningsSkeleton() {
+  return (
+    <section className="rounded-lg border border-gray-200 p-6">
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-12 w-12 rounded-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-3 w-48" />
+          </div>
+        </div>
+        <Skeleton className="h-10 w-36 rounded-lg" />
+      </div>
+      <hr className="my-5 border-gray-100" />
+      <div className="flex items-center gap-4">
+        <Skeleton className="h-6 w-24" />
+        <Skeleton className="h-8 w-32 rounded-lg" />
+      </div>
+      <Skeleton className="mt-3 h-10 w-40" />
+    </section>
+  );
+}
+
+function TransactionSkeleton() {
+  return (
+    <li className="rounded-lg p-3">
+      <div className="flex items-start justify-between">
+        <div className="flex items-start gap-3">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-3 w-40" />
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          <Skeleton className="h-4 w-12" />
+          <Skeleton className="h-3 w-20" />
+        </div>
+      </div>
+    </li>
   );
 }
 

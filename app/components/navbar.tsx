@@ -55,7 +55,9 @@ export default function Navbar() {
                 {initials(user?.name ?? "")}
               </div>
             )}
-            <span className="text-sm font-medium">{user?.name}</span>
+            <span className="max-w-[160px] truncate text-sm font-medium">
+              {user?.name}
+            </span>
             <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
               <path
                 d="M6 8l4 4 4-4"

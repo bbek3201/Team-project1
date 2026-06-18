@@ -4,7 +4,25 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "../components/navbar";
 import Sidebar from "../components/sidebar";
+import { Skeleton } from "../components/skeleton";
+import { FieldMessage } from "../components/field-message";
+import { Spinner } from "../components/spinner";
 import { useUser } from "../providers/user-provider";
+
+// Validation patterns (mirrors the complete-profile onboarding flow)
+// Name: letters, numbers, spaces and a few common punctuation marks, 2–50 chars
+const NAME_REGEX = /^[\p{L}\p{N} .,'-]{2,50}$/u;
+// Success confirmation message: at least 10 trimmed characters
+const ABOUT_MIN = 10;
+// Password: at least 8 chars, containing a letter and a number
+const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+// Card number: exactly 16 digits
+const CARD_REGEX = /^\d{16}$/;
+// CVC: exactly 3 digits
+const CVC_REGEX = /^\d{3}$/;
+
+const onlyDigits = (value: string, max: number) =>
+  value.replace(/\D/g, "").slice(0, max);
 
 const COUNTRIES = [
   "Mongolia",
@@ -24,6 +42,11 @@ const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 const inputClass =
   "w-full rounded-md border border-gray-200 px-3 py-2 text-sm outline-none focus:border-gray-400";
 const labelClass = "mb-2 block text-sm font-medium text-zinc-950";
+
+const fieldClass = (invalid?: string) =>
+  `w-full rounded-md border px-3 py-2 text-sm outline-none ${
+    invalid ? "border-red-400" : "border-gray-200 focus:border-gray-400"
+  }`;
 
 export default function AccountSettingsPage() {
   const router = useRouter();
@@ -91,7 +114,15 @@ export default function AccountSettingsPage() {
     return (
       <div className="min-h-screen bg-white text-gray-900">
         <Navbar />
-        <div className="py-20 text-center text-gray-400">Loading…</div>
+        <div className="mx-auto flex max-w-6xl gap-10 px-8 py-8">
+          <Sidebar />
+          <main className="flex w-full max-w-[650px] flex-col gap-8">
+            <Skeleton className="h-8 w-40" />
+            {Array.from({ length: 3 }).map((_, i) => (
+              <CardSkeleton key={i} />
+            ))}
+          </main>
+        </div>
       </div>
     );
   }
@@ -103,7 +134,7 @@ export default function AccountSettingsPage() {
       <div className="mx-auto flex max-w-6xl gap-10 px-8 py-8">
         <Sidebar />
 
-        <main className="flex w-full max-w-[650px] flex-col gap-8">
+        <main className="flex w-full max-w-[650px] flex-col gap-8 mb-22">
           <h1 className="text-2xl font-semibold tracking-tight">My account</h1>
 
           <PersonalInfoCard
@@ -151,6 +182,23 @@ export default function AccountSettingsPage() {
         </main>
       </div>
     </div>
+  );
+}
+
+function CardSkeleton() {
+  return (
+    <section className="flex flex-col gap-6 rounded-lg border border-gray-200 bg-white px-6 py-6">
+      <Skeleton className="h-5 w-32" />
+      <div className="flex flex-col gap-4">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-11 w-full rounded-lg" />
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-11 w-full rounded-lg" />
+      </div>
+      <div className="flex justify-end">
+        <Skeleton className="h-10 w-24 rounded-lg" />
+      </div>
+    </section>
   );
 }
 
@@ -202,8 +250,9 @@ function SaveButton({
       <button
         onClick={handle}
         disabled={disabled || saving}
-        className="w-full rounded-md bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded-md bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60"
       >
+        {saving && <Spinner />}
         {saving ? "Saving…" : saved ? "Saved!" : label}
       </button>
     </div>
@@ -252,6 +301,22 @@ function PersonalInfoCard({
   onSaved: () => Promise<void>;
 }) {
   const shownAvatar = avatarPreview || avatarImage;
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const errors: Record<string, string | undefined> = {};
+  if (!name.trim()) errors.name = "Please enter name";
+  else if (!NAME_REGEX.test(name.trim()))
+    errors.name = "Please enter a valid name";
+
+  if (!about.trim()) errors.about = "Please enter info about yourself";
+
+  if (!socialMediaURL.trim())
+    errors.socialMediaURL = "Please enter a social link";
+
+  const isValid = Object.keys(errors).length === 0;
+  const show = (field: string) => (touched[field] ? errors[field] : undefined);
+  const markTouched = (field: string) =>
+    setTouched((t) => ({ ...t, [field]: true }));
 
   return (
     <Card title="Personal Info">
@@ -284,17 +349,22 @@ function PersonalInfoCard({
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className={inputClass}
+            onBlur={() => markTouched("name")}
+            maxLength={50}
+            className={fieldClass(show("name"))}
           />
+          <FieldMessage message={show("name")} className="mt-1" />
         </div>
         <div>
           <label className={labelClass}>About</label>
           <textarea
             value={about}
             onChange={(e) => setAbout(e.target.value)}
+            onBlur={() => markTouched("about")}
             rows={5}
-            className={inputClass + " resize-none"}
+            className={fieldClass(show("about")) + " resize-none"}
           />
+          <FieldMessage message={show("about")} className="mt-1" />
         </div>
         <div>
           <label className={labelClass}>Social media URL</label>
@@ -302,14 +372,16 @@ function PersonalInfoCard({
             type="text"
             value={socialMediaURL}
             onChange={(e) => setSocialMediaURL(e.target.value)}
+            onBlur={() => markTouched("socialMediaURL")}
             placeholder="https://buymeacoffee.com/username"
-            className={inputClass}
+            className={fieldClass(show("socialMediaURL"))}
           />
+          <FieldMessage message={show("socialMediaURL")} className="mt-1" />
         </div>
       </div>
 
       <SaveButton
-        disabled={!name || !about || !socialMediaURL}
+        disabled={!isValid}
         onSave={async () => {
           let finalAvatar = avatarImage;
           if (photoFile) {
@@ -348,7 +420,22 @@ function PasswordCard({
   confirmPassword: string;
   setConfirmPassword: (v: string) => void;
 }) {
-  const mismatch = confirmPassword.length > 0 && newPassword !== confirmPassword;
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const passwordError = !newPassword
+    ? "Please enter a password"
+    : !PASSWORD_REGEX.test(newPassword)
+      ? "At least 8 characters, with a letter and a number"
+      : undefined;
+  const confirmError = !confirmPassword
+    ? "Please confirm your password"
+    : newPassword !== confirmPassword
+      ? "Passwords do not match"
+      : undefined;
+
+  const isValid = !passwordError && !confirmError;
+  const markTouched = (field: string) =>
+    setTouched((t) => ({ ...t, [field]: true }));
 
   return (
     <Card title="Set a new password">
@@ -359,8 +446,13 @@ function PasswordCard({
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
+            onBlur={() => markTouched("newPassword")}
             placeholder="Enter new password"
-            className={inputClass}
+            className={fieldClass(touched.newPassword ? passwordError : undefined)}
+          />
+          <FieldMessage
+            message={touched.newPassword ? passwordError : undefined}
+            className="mt-1"
           />
         </div>
         <div>
@@ -369,23 +461,26 @@ function PasswordCard({
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
+            onBlur={() => markTouched("confirmPassword")}
             placeholder="Confirm password"
-            className={inputClass}
+            className={fieldClass(
+              touched.confirmPassword ? confirmError : undefined,
+            )}
           />
-          {mismatch && (
-            <p className="mt-1 text-sm text-red-500">
-              Passwords do not match
-            </p>
-          )}
+          <FieldMessage
+            message={touched.confirmPassword ? confirmError : undefined}
+            className="mt-1"
+          />
         </div>
       </div>
 
       <SaveButton
-        disabled={!newPassword || newPassword !== confirmPassword}
+        disabled={!isValid}
         onSave={async () => {
           await patchAccount({ section: "password", newPassword });
           setNewPassword("");
           setConfirmPassword("");
+          setTouched({});
         }}
       />
     </Card>
@@ -419,7 +514,42 @@ function PaymentCard({
   year: string;
   setYear: (v: string) => void;
 }) {
-  const valid = country && firstName && lastName && cardNumber && month && year;
+  const [cvc, setCvc] = useState("");
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const markTouched = (field: string) =>
+    setTouched((t) => ({ ...t, [field]: true }));
+
+  const firstNameError = !firstName.trim()
+    ? "Please enter first name"
+    : !NAME_REGEX.test(firstName.trim())
+      ? "Please enter a valid name"
+      : undefined;
+  const lastNameError = !lastName.trim()
+    ? "Please enter last name"
+    : !NAME_REGEX.test(lastName.trim())
+      ? "Please enter a valid name"
+      : undefined;
+  const cardError = !cardNumber
+    ? "Please enter card number"
+    : !CARD_REGEX.test(cardNumber)
+      ? "Card number must be 16 digits"
+      : undefined;
+  const cvcError = !cvc
+    ? "Please enter CVC"
+    : !CVC_REGEX.test(cvc)
+      ? "CVC must be 3 digits"
+      : undefined;
+
+  const valid =
+    country &&
+    !firstNameError &&
+    !lastNameError &&
+    !cardError &&
+    !cvcError &&
+    month &&
+    year;
+  const show = (field: string, error?: string) =>
+    touched[field] ? error : undefined;
 
   return (
     <Card title="Payment details">
@@ -447,7 +577,12 @@ function PaymentCard({
               type="text"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              className={inputClass}
+              onBlur={() => markTouched("firstName")}
+              className={fieldClass(show("firstName", firstNameError))}
+            />
+            <FieldMessage
+              message={show("firstName", firstNameError)}
+              className="mt-1"
             />
           </div>
           <div>
@@ -456,7 +591,12 @@ function PaymentCard({
               type="text"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              className={inputClass}
+              onBlur={() => markTouched("lastName")}
+              className={fieldClass(show("lastName", lastNameError))}
+            />
+            <FieldMessage
+              message={show("lastName", lastNameError)}
+              className="mt-1"
             />
           </div>
         </div>
@@ -465,10 +605,17 @@ function PaymentCard({
           <label className={labelClass}>Enter card number</label>
           <input
             type="text"
+            inputMode="numeric"
             value={cardNumber}
-            onChange={(e) => setCardNumber(e.target.value)}
-            placeholder="XXXX-XXXX-XXXX-XXXX"
-            className={inputClass}
+            onChange={(e) => setCardNumber(onlyDigits(e.target.value, 16))}
+            onBlur={() => markTouched("cardNumber")}
+            maxLength={16}
+            placeholder="XXXXXXXXXXXXXXXX"
+            className={fieldClass(show("cardNumber", cardError))}
+          />
+          <FieldMessage
+            message={show("cardNumber", cardError)}
+            className="mt-1"
           />
         </div>
 
@@ -507,9 +654,15 @@ function PaymentCard({
             <label className={labelClass}>CVC</label>
             <input
               type="text"
+              inputMode="numeric"
+              value={cvc}
+              onChange={(e) => setCvc(onlyDigits(e.target.value, 3))}
+              onBlur={() => markTouched("cvc")}
+              maxLength={3}
               placeholder="CVC"
-              className={inputClass}
+              className={fieldClass(show("cvc", cvcError))}
             />
+            <FieldMessage message={show("cvc", cvcError)} className="mt-1" />
           </div>
         </div>
       </div>
@@ -539,6 +692,13 @@ function SuccessCard({
   successMessage: string;
   setSuccessMessage: (v: string) => void;
 }) {
+  const [touched, setTouched] = useState(false);
+  const error = !successMessage.trim()
+    ? "Please enter a confirmation message"
+    : successMessage.trim().length < ABOUT_MIN
+      ? `Please write at least ${ABOUT_MIN} characters`
+      : undefined;
+
   return (
     <Card title="Success page">
       <div>
@@ -546,16 +706,16 @@ function SuccessCard({
         <textarea
           value={successMessage}
           onChange={(e) => setSuccessMessage(e.target.value)}
+          onBlur={() => setTouched(true)}
           rows={5}
-          className={inputClass + " resize-none"}
+          className={fieldClass(touched ? error : undefined) + " resize-none"}
         />
+        <FieldMessage message={touched ? error : undefined} className="mt-1" />
       </div>
 
       <SaveButton
-        disabled={!successMessage}
-        onSave={() =>
-          patchAccount({ section: "success", successMessage })
-        }
+        disabled={!!error}
+        onSave={() => patchAccount({ section: "success", successMessage })}
       />
     </Card>
   );
