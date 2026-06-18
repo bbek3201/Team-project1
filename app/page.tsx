@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import Navbar from "./components/navbar";
+import Sidebar from "./components/sidebar";
+import { Skeleton } from "./components/skeleton";
 
 type Transaction = {
   id: number;
@@ -67,13 +69,11 @@ export default function DashboardPage() {
 
   const [rangeOpen, setRangeOpen] = useState(false);
   const [amountOpen, setAmountOpen] = useState(false);
-  const [userOpen, setUserOpen] = useState(false);
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [copied, setCopied] = useState(false);
 
   const rangeRef = useOutsideClose(() => setRangeOpen(false));
   const amountRef = useOutsideClose(() => setAmountOpen(false));
-  const userRef = useOutsideClose(() => setUserOpen(false));
 
   useEffect(() => {
     async function load() {
@@ -91,11 +91,6 @@ export default function DashboardPage() {
     }
     load();
   }, [range, amounts, router]);
-
-  async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-  }
 
   function toggleAmount(n: number) {
     setAmounts((prev) =>
@@ -122,84 +117,33 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      {/* Top nav */}
-      <header className="flex items-center justify-between border-b border-gray-100 px-10 py-4">
-        <div className="flex items-center gap-2 text-lg font-bold">
-          <img src="/coffee.svg" alt="" className="h-6 w-6" />
-          <span>Buy Me Coffee</span>
-        </div>
-
-        <div className="relative" ref={userRef}>
-          <button
-            onClick={() => setUserOpen((o) => !o)}
-            className="flex items-center gap-2"
-          >
-            <Avatar src={data?.user.avatar} name={data?.user.name ?? ""} />
-            <span className="font-medium">{data?.user.name}</span>
-            <Chevron />
-          </button>
-          {userOpen && (
-            <div className="absolute right-0 z-20 mt-2 w-44 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
-              <button
-                onClick={handleLogout}
-                className="w-full px-4 py-2 text-left hover:bg-gray-50"
-              >
-                Logout
-              </button>
-            </div>
-          )}
-        </div>
-      </header>
+      <Navbar />
 
       <div className="mx-auto flex max-w-6xl gap-10 px-8 py-8">
-        {/* Sidebar */}
-        <aside className="w-56 shrink-0">
-          <nav className="flex flex-col gap-1 text-[15px]">
-            <Link href="/" className="rounded-md bg-gray-100 px-4 py-2 font-medium">
-              Home
-            </Link>
-            <Link
-              href="/explore"
-              className="rounded-md px-4 py-2 text-gray-700 hover:bg-gray-50"
-            >
-              Explore
-            </Link>
-            <a
-              href={data ? `/donate/${data.user.username}` : "#"}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-1 rounded-md px-4 py-2 text-gray-700 hover:bg-gray-50"
-            >
-              View page <ExternalIcon />
-            </a>
-            <Link
-              href="/complete-profile"
-              className="rounded-md px-4 py-2 text-gray-700 hover:bg-gray-50"
-            >
-              Account settings
-            </Link>
-          </nav>
-        </aside>
+        <Sidebar />
 
         {/* Main */}
         <main className="flex-1">
           {/* Profile + earnings card */}
-          <section className="rounded-2xl border border-gray-200 p-6">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
+          {!data ? (
+            <ProfileEarningsSkeleton />
+          ) : (
+          <section className="rounded-lg border border-gray-200 p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex min-w-0 items-center gap-3">
                 <Avatar
                   src={data?.user.avatar}
                   name={data?.user.name ?? ""}
                   size={48}
                 />
-                <div>
-                  <p className="font-bold">{data?.user.name}</p>
-                  <p className="text-sm text-gray-500">{pageUrl}</p>
+                <div className="min-w-0">
+                  <p className="truncate font-bold">{data?.user.name}</p>
+                  <p className="truncate text-sm text-gray-500">{pageUrl}</p>
                 </div>
               </div>
               <button
                 onClick={copyPageLink}
-                className="flex items-center gap-2 rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white"
+                className="flex shrink-0 items-center gap-2 rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white"
               >
                 <CopyIcon />
                 {copied ? "Copied!" : "Share page link"}
@@ -209,7 +153,7 @@ export default function DashboardPage() {
             <hr className="my-5 border-gray-100" />
 
             <div className="flex items-center gap-4">
-              <h2 className="text-xl font-bold">Earnings</h2>
+              <h2 className="text-xl font-semibold tracking-tight">Earnings</h2>
               <div className="relative" ref={rangeRef}>
                 <button
                   onClick={() => setRangeOpen((o) => !o)}
@@ -237,12 +181,15 @@ export default function DashboardPage() {
                 )}
               </div>
             </div>
-            <p className="mt-3 text-5xl font-extrabold">${data?.earnings ?? 0}</p>
+            <p className="mt-3 text-4xl font-extrabold tracking-tight">
+              ${data?.earnings ?? 0}
+            </p>
           </section>
+          )}
 
           {/* Recent transactions */}
           <div className="mt-8 flex items-center justify-between">
-            <h3 className="font-bold">Recent transactions</h3>
+            <h3 className="font-semibold">Recent transactions</h3>
             <div className="relative" ref={amountRef}>
               <button
                 onClick={() => setAmountOpen((o) => !o)}
@@ -277,20 +224,19 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <section className="mt-4 rounded-2xl border border-gray-200">
+          <section className="mt-4 rounded-lg border border-gray-200">
             {loading ? (
-              <div className="py-20 text-center text-gray-400">Loading…</div>
+              <ul className="flex flex-col gap-4 p-6">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <TransactionSkeleton key={i} />
+                ))}
+              </ul>
             ) : !data || data.transactions.length === 0 ? (
               <EmptyState />
             ) : (
-              <ul>
-                {data.transactions.map((t, i) => (
-                  <li
-                    key={t.id}
-                    className={
-                      i !== 0 ? "border-t border-gray-100 px-6 py-5" : "px-6 py-5"
-                    }
-                  >
+              <ul className="flex flex-col gap-4 p-6">
+                {data.transactions.map((t) => (
+                  <li key={t.id} className="rounded-lg p-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-3">
                         <Avatar src={t.avatar} name={t.name} />
@@ -321,6 +267,49 @@ export default function DashboardPage() {
         </main>
       </div>
     </div>
+  );
+}
+
+function ProfileEarningsSkeleton() {
+  return (
+    <section className="rounded-lg border border-gray-200 p-6">
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-12 w-12 rounded-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-3 w-48" />
+          </div>
+        </div>
+        <Skeleton className="h-10 w-36 rounded-lg" />
+      </div>
+      <hr className="my-5 border-gray-100" />
+      <div className="flex items-center gap-4">
+        <Skeleton className="h-6 w-24" />
+        <Skeleton className="h-8 w-32 rounded-lg" />
+      </div>
+      <Skeleton className="mt-3 h-10 w-40" />
+    </section>
+  );
+}
+
+function TransactionSkeleton() {
+  return (
+    <li className="rounded-lg p-3">
+      <div className="flex items-start justify-between">
+        <div className="flex items-start gap-3">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-3 w-40" />
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          <Skeleton className="h-4 w-12" />
+          <Skeleton className="h-3 w-20" />
+        </div>
+      </div>
+    </li>
   );
 }
 
@@ -437,20 +426,6 @@ function CopyIcon() {
         d="M13 7V5a2 2 0 00-2-2H6a2 2 0 00-2 2v5a2 2 0 002 2h2"
         stroke="currentColor"
         strokeWidth="1.5"
-      />
-    </svg>
-  );
-}
-
-function ExternalIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
-      <path
-        d="M8 4H5a1 1 0 00-1 1v10a1 1 0 001 1h10a1 1 0 001-1v-3M12 4h4v4M16 4l-7 7"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
       />
     </svg>
   );

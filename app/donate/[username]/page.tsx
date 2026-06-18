@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
+import { Spinner } from "../../components/spinner";
 
 type Creator = {
   username: string;
@@ -174,8 +175,9 @@ export default function DonatePage({
           <button
             onClick={handleSend}
             disabled={!social || loading}
-            className="w-full rounded-lg bg-black py-3 font-medium text-white disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-black py-3 font-medium text-white disabled:opacity-60"
           >
+            {loading && <Spinner />}
             {loading ? "Sending…" : `Support $${amount}`}
           </button>
         </div>

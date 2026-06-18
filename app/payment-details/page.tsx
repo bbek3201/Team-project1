@@ -2,6 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { FieldMessage } from "../components/field-message";
+import { Spinner } from "../components/spinner";
+
+// Name: letters, numbers, spaces and a few common punctuation marks, 2–50 chars
+const NAME_REGEX = /^[\p{L}\p{N} .,'-]{2,50}$/u;
+// Card number: exactly 16 digits
+const CARD_REGEX = /^\d{16}$/;
+// CVC: exactly 3 digits
+const CVC_REGEX = /^\d{3}$/;
+
+const onlyDigits = (value: string, max: number) =>
+  value.replace(/\D/g, "").slice(0, max);
 
 const COUNTRIES = [
   "Mongolia",
@@ -29,11 +41,55 @@ export default function PaymentDetailsPage() {
   const [cvc, setCvc] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const firstNameError = !firstName.trim()
+    ? "Please enter first name"
+    : !NAME_REGEX.test(firstName.trim())
+      ? "Please enter a valid name"
+      : undefined;
+  const lastNameError = !lastName.trim()
+    ? "Please enter last name"
+    : !NAME_REGEX.test(lastName.trim())
+      ? "Please enter a valid name"
+      : undefined;
+  const cardError = !cardNumber
+    ? "Please enter card number"
+    : !CARD_REGEX.test(cardNumber)
+      ? "Card number must be 16 digits"
+      : undefined;
+  const cvcError = !cvc
+    ? "Please enter CVC"
+    : !CVC_REGEX.test(cvc)
+      ? "CVC must be 3 digits"
+      : undefined;
 
   const isValid =
-    country && firstName && lastName && cardNumber && month && year && cvc;
+    country &&
+    !firstNameError &&
+    !lastNameError &&
+    !cardError &&
+    !cvcError &&
+    month &&
+    year;
+
+  const markTouched = (field: string) =>
+    setTouched((t) => ({ ...t, [field]: true }));
+  const show = (field: string, fieldError?: string) =>
+    touched[field] ? fieldError : undefined;
+  const borderClass = (invalid?: string) =>
+    `w-full rounded-md border px-4 py-3 outline-none ${
+      invalid ? "border-red-400" : "border-gray-300"
+    }`;
 
   async function handleContinue() {
+    setTouched({
+      firstName: true,
+      lastName: true,
+      cardNumber: true,
+      cvc: true,
+    });
+    if (!isValid) return;
     setError("");
     setLoading(true);
     try {
@@ -96,8 +152,13 @@ export default function PaymentDetailsPage() {
               type="text"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
+              onBlur={() => markTouched("firstName")}
               placeholder="Enter your name here"
-              className="w-full rounded-md border border-gray-300 px-4 py-3 outline-none"
+              className={borderClass(show("firstName", firstNameError))}
+            />
+            <FieldMessage
+              message={show("firstName", firstNameError)}
+              className="mt-1"
             />
           </div>
           <div>
@@ -106,8 +167,13 @@ export default function PaymentDetailsPage() {
               type="text"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
+              onBlur={() => markTouched("lastName")}
               placeholder="Enter your name here"
-              className="w-full rounded-md border border-gray-300 px-4 py-3 outline-none"
+              className={borderClass(show("lastName", lastNameError))}
+            />
+            <FieldMessage
+              message={show("lastName", lastNameError)}
+              className="mt-1"
             />
           </div>
         </div>
@@ -115,10 +181,17 @@ export default function PaymentDetailsPage() {
         <label className="mb-1 block font-medium">Enter card number</label>
         <input
           type="text"
+          inputMode="numeric"
           value={cardNumber}
-          onChange={(e) => setCardNumber(e.target.value)}
-          placeholder="XXXX-XXXX-XXXX-XXXX"
-          className="mb-6 w-full rounded-md border border-gray-300 px-4 py-3 outline-none"
+          onChange={(e) => setCardNumber(onlyDigits(e.target.value, 16))}
+          onBlur={() => markTouched("cardNumber")}
+          maxLength={16}
+          placeholder="XXXXXXXXXXXXXXXX"
+          className={borderClass(show("cardNumber", cardError)) + " mb-1"}
+        />
+        <FieldMessage
+          message={show("cardNumber", cardError)}
+          className="mb-5"
         />
 
         <div className="mb-2 grid grid-cols-3 gap-4">
@@ -156,11 +229,15 @@ export default function PaymentDetailsPage() {
             <label className="mb-1 block font-medium">CVC</label>
             <input
               type="text"
+              inputMode="numeric"
               value={cvc}
-              onChange={(e) => setCvc(e.target.value)}
+              onChange={(e) => setCvc(onlyDigits(e.target.value, 3))}
+              onBlur={() => markTouched("cvc")}
+              maxLength={3}
               placeholder="CVC"
-              className="w-full rounded-md border border-gray-300 px-4 py-3 outline-none"
+              className={borderClass(show("cvc", cvcError))}
             />
+            <FieldMessage message={show("cvc", cvcError)} className="mt-1" />
           </div>
         </div>
         {error && <p className="mb-4 text-sm text-red-500">⊗ {error}</p>}
@@ -168,8 +245,9 @@ export default function PaymentDetailsPage() {
         <button
           onClick={handleContinue}
           disabled={!isValid || loading}
-          className="mt-6 w-full rounded-md bg-black py-3 font-medium text-white disabled:opacity-60"
+          className="mt-6 flex w-full items-center justify-center gap-2 rounded-md bg-black py-3 font-medium text-white disabled:opacity-60"
         >
+          {loading && <Spinner />}
           {loading ? "Saving..." : "Continue"}
         </button>
       </div>
