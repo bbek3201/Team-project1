@@ -1,7 +1,23 @@
 import { prisma } from "@/lib/prisma";
 import { getUserFromRequest } from "@/lib/auth";
+import { del } from "@vercel/blob";
 import bcrypt from "bcrypt";
 import { NextRequest, NextResponse } from "next/server";
+
+async function deleteBlobIfReplaced(oldUrl?: string | null, newUrl?: string) {
+  if (
+    !oldUrl ||
+    oldUrl === newUrl ||
+    !oldUrl.includes(".blob.vercel-storage.com")
+  ) {
+    return;
+  }
+  try {
+    await del(oldUrl);
+  } catch (e) {
+    console.error("Failed to delete old avatar blob", e);
+  }
+}
 
 export async function GET(req: NextRequest) {
   const auth = getUserFromRequest(req);
@@ -57,6 +73,10 @@ export async function PATCH(req: NextRequest) {
     const { name, about, avatarImage, socialMediaURL, successMessage } = body;
 
     if (me.profileId) {
+      const existing = await prisma.profile.findUnique({
+        where: { id: me.profileId },
+        select: { avatarImage: true },
+      });
       await prisma.profile.update({
         where: { id: me.profileId },
         data: {
@@ -67,6 +87,9 @@ export async function PATCH(req: NextRequest) {
           ...(successMessage !== undefined ? { successMessage } : {}),
         },
       });
+      if (avatarImage !== undefined) {
+        await deleteBlobIfReplaced(existing?.avatarImage, avatarImage);
+      }
     } else {
       const profile = await prisma.profile.create({
         data: {
