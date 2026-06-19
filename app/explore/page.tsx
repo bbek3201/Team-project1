@@ -46,7 +46,7 @@ export default function ExplorePage() {
       <div className="mx-auto flex max-w-6xl gap-10 px-8 py-8">
         <Sidebar />
 
-        <main className="flex flex-1 flex-col gap-6 mb-28">
+        <main className="flex flex-1 flex-col gap-6 mb-10">
           <h1 className="text-xl font-semibold tracking-tight">
             Explore creators
           </h1>

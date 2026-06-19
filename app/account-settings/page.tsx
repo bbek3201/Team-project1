@@ -135,7 +135,7 @@ export default function AccountSettingsPage() {
       <div className="mx-auto flex max-w-6xl gap-10 px-8 py-8">
         <Sidebar />
 
-        <main className="flex w-full max-w-[650px] flex-col gap-8 mb-22">
+        <main className="flex w-full max-w-[650px] flex-col gap-8 mb-10">
           <h1 className="text-2xl font-semibold tracking-tight">My account</h1>
 
           <PersonalInfoCard
@@ -450,7 +450,9 @@ function PasswordCard({
             onChange={(e) => setNewPassword(e.target.value)}
             onBlur={() => markTouched("newPassword")}
             placeholder="Enter new password"
-            className={fieldClass(touched.newPassword ? passwordError : undefined)}
+            className={fieldClass(
+              touched.newPassword ? passwordError : undefined,
+            )}
           />
           <FieldMessage
             message={touched.newPassword ? passwordError : undefined}
