@@ -72,6 +72,10 @@ export default function DashboardPage() {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [copied, setCopied] = useState(false);
 
+  const [origin] = useState(() =>
+    typeof window !== "undefined" ? window.location.origin : "",
+  );
+
   const rangeRef = useOutsideClose(() => setRangeOpen(false));
   const amountRef = useOutsideClose(() => setAmountOpen(false));
 
@@ -107,10 +111,11 @@ export default function DashboardPage() {
     });
   }
 
-  const pageUrl = data ? `buymeacoffee.com/${data.user.username}` : "";
+  const pageUrl = data ? `${origin}/donate/${data.user.username}` : "";
+  const pageUrlDisplay = pageUrl.replace(/^https?:\/\//, "");
 
   async function copyPageLink() {
-    await navigator.clipboard.writeText(`https://${pageUrl}`);
+    await navigator.clipboard.writeText(pageUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }
@@ -128,63 +133,67 @@ export default function DashboardPage() {
           {!data ? (
             <ProfileEarningsSkeleton />
           ) : (
-          <section className="rounded-lg border border-gray-200 p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex min-w-0 items-center gap-3">
-                <Avatar
-                  src={data?.user.avatar}
-                  name={data?.user.name ?? ""}
-                  size={48}
-                />
-                <div className="min-w-0">
-                  <p className="truncate font-bold">{data?.user.name}</p>
-                  <p className="truncate text-sm text-gray-500">{pageUrl}</p>
+            <section className="rounded-lg border border-gray-200 p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex min-w-0 items-center gap-3">
+                  <Avatar
+                    src={data?.user.avatar}
+                    name={data?.user.name ?? ""}
+                    size={48}
+                  />
+                  <div className="min-w-0">
+                    <p className="truncate font-bold">{data?.user.name}</p>
+                    <p className="truncate text-sm text-gray-500">
+                      {pageUrlDisplay}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={copyPageLink}
+                  className="flex shrink-0 items-center gap-2 rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white"
+                >
+                  <CopyIcon />
+                  {copied ? "Copied!" : "Share page link"}
+                </button>
+              </div>
+
+              <hr className="my-5 border-gray-100" />
+
+              <div className="flex items-center gap-4">
+                <h2 className="text-xl font-semibold tracking-tight">
+                  Earnings
+                </h2>
+                <div className="relative" ref={rangeRef}>
+                  <button
+                    onClick={() => setRangeOpen((o) => !o)}
+                    className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
+                  >
+                    {RANGE_LABELS[range]}
+                    <Chevron />
+                  </button>
+                  {rangeOpen && (
+                    <div className="absolute z-20 mt-2 w-44 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+                      {Object.entries(RANGE_LABELS).map(([key, label]) => (
+                        <button
+                          key={key}
+                          onClick={() => {
+                            setRange(key);
+                            setRangeOpen(false);
+                          }}
+                          className="flex w-full items-center justify-between px-4 py-2 text-left text-sm hover:bg-gray-50"
+                        >
+                          {label}
+                          {range === key && <CheckIcon />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
-              <button
-                onClick={copyPageLink}
-                className="flex shrink-0 items-center gap-2 rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white"
-              >
-                <CopyIcon />
-                {copied ? "Copied!" : "Share page link"}
-              </button>
-            </div>
-
-            <hr className="my-5 border-gray-100" />
-
-            <div className="flex items-center gap-4">
-              <h2 className="text-xl font-semibold tracking-tight">Earnings</h2>
-              <div className="relative" ref={rangeRef}>
-                <button
-                  onClick={() => setRangeOpen((o) => !o)}
-                  className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
-                >
-                  {RANGE_LABELS[range]}
-                  <Chevron />
-                </button>
-                {rangeOpen && (
-                  <div className="absolute z-20 mt-2 w-44 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
-                    {Object.entries(RANGE_LABELS).map(([key, label]) => (
-                      <button
-                        key={key}
-                        onClick={() => {
-                          setRange(key);
-                          setRangeOpen(false);
-                        }}
-                        className="flex w-full items-center justify-between px-4 py-2 text-left text-sm hover:bg-gray-50"
-                      >
-                        {label}
-                        {range === key && <CheckIcon />}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-            <p className="mt-3 text-4xl font-extrabold tracking-tight">
-              ${data?.earnings ?? 0}
-            </p>
-          </section>
+              <p className="mt-3 text-4xl font-extrabold tracking-tight">
+                ${data?.earnings ?? 0}
+              </p>
+            </section>
           )}
 
           {/* Recent transactions */}
@@ -204,7 +213,7 @@ export default function DashboardPage() {
                 )}
               </button>
               {amountOpen && (
-                <div className="absolute right-0 z-20 mt-2 w-40 rounded-lg border border-gray-200 bg-white p-1 shadow-lg">
+                <div className="absolute right-0 z-20 mt-2 w-40 rounded-lg border border-gray-200 bg-white p-1 shadow-lg mb-15">
                   {AMOUNT_OPTIONS.map((n) => (
                     <label
                       key={n}

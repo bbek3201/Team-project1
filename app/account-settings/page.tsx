@@ -8,6 +8,7 @@ import { Skeleton } from "../components/skeleton";
 import { FieldMessage } from "../components/field-message";
 import { Spinner } from "../components/spinner";
 import { useUser } from "../providers/user-provider";
+import { toast } from "sonner";
 
 // Validation patterns (mirrors the complete-profile onboarding flow)
 // Name: letters, numbers, spaces and a few common punctuation marks, 2–50 chars
@@ -221,24 +222,25 @@ function SaveButton({
   onSave,
   disabled,
   label = "Save changes",
+  successMessage = "Changes saved successfully",
 }: {
   onSave: () => Promise<void>;
   disabled?: boolean;
   label?: string;
+  successMessage?: string;
 }) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [error, setError] = useState("");
 
   async function handle() {
-    setError("");
     setSaving(true);
     try {
       await onSave();
       setSaved(true);
       setTimeout(() => setSaved(false), 1500);
+      toast.success(successMessage);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong");
+      toast.error(e instanceof Error ? e.message : "Something went wrong");
     } finally {
       setSaving(false);
     }
@@ -246,7 +248,6 @@ function SaveButton({
 
   return (
     <div className="flex flex-col items-end gap-2">
-      {error && <p className="w-full text-sm text-red-500">⊗ {error}</p>}
       <button
         onClick={handle}
         disabled={disabled || saving}
@@ -382,6 +383,7 @@ function PersonalInfoCard({
 
       <SaveButton
         disabled={!isValid}
+        successMessage="Personal info updated"
         onSave={async () => {
           let finalAvatar = avatarImage;
           if (photoFile) {
@@ -476,6 +478,7 @@ function PasswordCard({
 
       <SaveButton
         disabled={!isValid}
+        successMessage="Password updated"
         onSave={async () => {
           await patchAccount({ section: "password", newPassword });
           setNewPassword("");
@@ -669,6 +672,7 @@ function PaymentCard({
 
       <SaveButton
         disabled={!valid}
+        successMessage="Payment details updated"
         onSave={() =>
           patchAccount({
             section: "payment",
@@ -715,6 +719,7 @@ function SuccessCard({
 
       <SaveButton
         disabled={!!error}
+        successMessage="Success page updated"
         onSave={() => patchAccount({ section: "success", successMessage })}
       />
     </Card>
