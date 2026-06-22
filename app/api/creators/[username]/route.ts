@@ -20,5 +20,8 @@ export async function GET(
     name: user.profile?.name ?? user.username,
     avatar: user.profile?.avatarImage ?? "",
     about: user.profile?.about ?? "",
+    socialMediaURL: user.profile?.socialMediaURL ?? "",
+    backgroundImage: user.profile?.backgroundImage ?? "",
+    successMessage: user.profile?.successMessage ?? "",
   });
 }

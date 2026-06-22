@@ -106,6 +106,8 @@ function CreatorCard({ creator }: { creator: Creator }) {
         </div>
         <Link
           href={`/donate/${creator.username}`}
+          target="_blank"
+          rel="noreferrer"
           className="flex items-center gap-2 rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-gray-200"
         >
           View profile <ExternalIcon />
