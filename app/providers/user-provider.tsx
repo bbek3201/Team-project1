@@ -7,7 +7,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { apiFetch } from "@/lib/api";
+import { apiFetch } from "../../lib/api";
 import { clearTokens, hasStoredToken } from "@/lib/auth-client";
 
 export type CurrentUser = {
@@ -32,7 +32,9 @@ const UserContext = createContext<UserContextValue | null>(null);
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [hasToken, setHasToken] = useState(false);
+  const [hasToken, setHasToken] = useState(() =>
+    typeof window !== "undefined" ? hasStoredToken() : false,
+  );
 
   const refresh = useCallback(async () => {
     try {
@@ -59,7 +61,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    setHasToken(hasStoredToken());
     refresh();
   }, [refresh]);
 
