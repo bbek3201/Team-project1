@@ -290,7 +290,7 @@ export default function DonatePage({
         <Skeleton className="h-80 w-full rounded-none" />
 
         {/* Two columns skeleton */}
-        <div className="relative z-10 mx-auto -mt-16 max-w-[1216px] px-4 pb-16">
+        <div className="relative z-10 mx-auto -mt-16 max-w-304 px-4 pb-16">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* Left column */}
             <div className="flex flex-col gap-5">
@@ -451,7 +451,7 @@ export default function DonatePage({
       </div>
 
       {/* Two columns */}
-      <div className="relative z-10 mx-auto -mt-16 max-w-[1216px] px-4 pb-16">
+      <div className="relative z-10 mx-auto -mt-16 max-w-304 px-4 pb-16">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Left column */}
           <div className="flex flex-col gap-5">
@@ -525,8 +525,8 @@ export default function DonatePage({
                       />
                       <div className="min-w-0">
                         <p className="text-sm">
-                          <span className="font-semibold">{s.name}</span>{" "}
-                          bought ${s.amount} coffee
+                          <span className="font-semibold">{s.name}</span> bought
+                          ${s.amount} coffee
                         </p>
                         {s.message && (
                           <p className="mt-1 text-sm text-gray-600">
@@ -566,7 +566,9 @@ export default function DonatePage({
 
           {/* Right column: donation form */}
           <div className="h-fit rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-5 text-xl font-bold">Buy {creator.name} a Coffee</h2>
+            <h2 className="mb-5 text-xl font-bold">
+              Buy {creator.name} a Coffee
+            </h2>
 
             <label className="mb-2 block text-sm font-medium">
               Select amount:
@@ -631,7 +633,7 @@ export default function DonatePage({
           onClick={() => !editSaving && setEditOpen(false)}
         >
           <div
-            className="w-full max-w-[558px] rounded-2xl bg-white p-6 shadow-xl"
+            className="w-full max-w-139.5 rounded-2xl bg-white p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between">
