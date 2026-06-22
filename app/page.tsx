@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import Navbar from "./components/navbar";
 import Sidebar from "./components/sidebar";
 import { Skeleton } from "./components/skeleton";
+import { apiFetch } from "@/lib/api";
+import { hasStoredToken } from "@/lib/auth-client";
+import { useUser } from "./providers/user-provider";
 
 type Transaction = {
   id: number;
@@ -61,6 +64,7 @@ function useOutsideClose(onClose: () => void) {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { user: authUser, loading: authLoading } = useUser();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -79,12 +83,22 @@ export default function DashboardPage() {
   const rangeRef = useOutsideClose(() => setRangeOpen(false));
   const amountRef = useOutsideClose(() => setAmountOpen(false));
 
+  // Redirect logged-out visitors before any dashboard content renders:
+  // first by the synchronous token presence check, then by the verified
+  // session from the provider (covers expired/invalid tokens).
   useEffect(() => {
+    if (!hasStoredToken() || (!authLoading && !authUser)) {
+      router.replace("/login");
+    }
+  }, [authLoading, authUser, router]);
+
+  useEffect(() => {
+    if (!authUser) return;
     async function load() {
       setLoading(true);
       const params = new URLSearchParams({ range });
       if (amounts.length) params.set("amounts", amounts.join(","));
-      const res = await fetch(`/api/dashboard?${params.toString()}`);
+      const res = await apiFetch(`/api/dashboard?${params.toString()}`);
       if (res.status === 401) {
         router.push("/login");
         return;
@@ -94,7 +108,7 @@ export default function DashboardPage() {
       setLoading(false);
     }
     load();
-  }, [range, amounts, router]);
+  }, [authUser, range, amounts, router]);
 
   function toggleAmount(n: number) {
     setAmounts((prev) =>
@@ -118,6 +132,12 @@ export default function DashboardPage() {
     await navigator.clipboard.writeText(pageUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
+  }
+
+  // While the session is being verified (or for logged-out users mid-redirect)
+  // render a blank screen so the dashboard never flashes.
+  if (!authUser) {
+    return <div className="min-h-screen bg-white" />;
   }
 
   return (

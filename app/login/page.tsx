@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useUser } from "../providers/user-provider";
+import { storeTokens } from "@/lib/auth-client";
 import { isValidEmail } from "@/lib/validation";
 import { FieldMessage } from "../components/field-message";
 import { Spinner } from "../components/spinner";
@@ -37,6 +38,7 @@ export default function LoginPage() {
         setError(data.error);
         return;
       }
+      storeTokens(data);
       await refresh();
       if (data.hasProfile) {
         router.push("./");

@@ -7,6 +7,8 @@ import {
   useEffect,
   useState,
 } from "react";
+import { apiFetch } from "@/lib/api";
+import { clearTokens, hasStoredToken } from "@/lib/auth-client";
 
 export type CurrentUser = {
   id: number;
@@ -20,6 +22,7 @@ export type CurrentUser = {
 type UserContextValue = {
   user: CurrentUser | null;
   loading: boolean;
+  hasToken: boolean;
   refresh: () => Promise<void>;
   logout: () => Promise<void>;
 };
@@ -29,16 +32,20 @@ const UserContext = createContext<UserContextValue | null>(null);
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasToken, setHasToken] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch("/api/auth/me");
+      const res = await apiFetch("/api/auth/me");
       if (!res.ok) {
+        clearTokens();
         setUser(null);
+        setHasToken(false);
         return;
       }
       const data = await res.json();
       setUser(data.user);
+      setHasToken(true);
     } finally {
       setLoading(false);
     }
@@ -46,15 +53,18 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     await fetch("/api/auth/logout", { method: "POST" });
+    clearTokens();
     setUser(null);
+    setHasToken(false);
   }, []);
 
   useEffect(() => {
+    setHasToken(hasStoredToken());
     refresh();
   }, [refresh]);
 
   return (
-    <UserContext.Provider value={{ user, loading, refresh, logout }}>
+    <UserContext.Provider value={{ user, loading, hasToken, refresh, logout }}>
       {children}
     </UserContext.Provider>
   );

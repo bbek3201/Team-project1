@@ -8,6 +8,7 @@ import { Skeleton } from "../components/skeleton";
 import { FieldMessage } from "../components/field-message";
 import { Spinner } from "../components/spinner";
 import { useUser } from "../providers/user-provider";
+import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 
 // Validation patterns (mirrors the complete-profile onboarding flow)
@@ -79,7 +80,7 @@ export default function AccountSettingsPage() {
 
   useEffect(() => {
     async function load() {
-      const res = await fetch("/api/account");
+      const res = await apiFetch("/api/account");
       if (res.status === 401) {
         router.push("/login");
         return;
@@ -261,7 +262,7 @@ function SaveButton({
 }
 
 async function patchAccount(body: Record<string, unknown>) {
-  const res = await fetch("/api/account", {
+  const res = await apiFetch("/api/account", {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
