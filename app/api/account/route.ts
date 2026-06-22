@@ -15,7 +15,7 @@ async function deleteBlobIfReplaced(oldUrl?: string | null, newUrl?: string) {
   try {
     await del(oldUrl);
   } catch (e) {
-    console.error("Failed to delete old avatar blob", e);
+    console.error("Failed to delete old blob", e);
   }
 }
 
@@ -41,6 +41,7 @@ export async function GET(req: NextRequest) {
       name: me.profile?.name ?? "",
       about: me.profile?.about ?? "",
       avatarImage: me.profile?.avatarImage ?? "",
+      backgroundImage: me.profile?.backgroundImage ?? "",
       socialMediaURL: me.profile?.socialMediaURL ?? "",
       successMessage: me.profile?.successMessage ?? "",
     },
@@ -70,12 +71,13 @@ export async function PATCH(req: NextRequest) {
   }
 
   if (section === "profile" || section === "success") {
-    const { name, about, avatarImage, socialMediaURL, successMessage } = body;
+    const { name, about, avatarImage, backgroundImage, socialMediaURL, successMessage } =
+      body;
 
     if (me.profileId) {
       const existing = await prisma.profile.findUnique({
         where: { id: me.profileId },
-        select: { avatarImage: true },
+        select: { avatarImage: true, backgroundImage: true },
       });
       await prisma.profile.update({
         where: { id: me.profileId },
@@ -83,12 +85,16 @@ export async function PATCH(req: NextRequest) {
           ...(name !== undefined ? { name } : {}),
           ...(about !== undefined ? { about } : {}),
           ...(avatarImage !== undefined ? { avatarImage } : {}),
+          ...(backgroundImage !== undefined ? { backgroundImage } : {}),
           ...(socialMediaURL !== undefined ? { socialMediaURL } : {}),
           ...(successMessage !== undefined ? { successMessage } : {}),
         },
       });
       if (avatarImage !== undefined) {
         await deleteBlobIfReplaced(existing?.avatarImage, avatarImage);
+      }
+      if (backgroundImage !== undefined) {
+        await deleteBlobIfReplaced(existing?.backgroundImage, backgroundImage);
       }
     } else {
       const profile = await prisma.profile.create({
@@ -97,7 +103,7 @@ export async function PATCH(req: NextRequest) {
           about: about ?? "",
           avatarImage: avatarImage ?? "",
           socialMediaURL: socialMediaURL ?? "",
-          backgroundImage: "",
+          backgroundImage: backgroundImage ?? "",
           successMessage: successMessage ?? "Thank you for your support!",
         },
       });
