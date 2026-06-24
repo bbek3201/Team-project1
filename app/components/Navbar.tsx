@@ -3,13 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useUser } from "../providers/user-provider";
-
-function initials(name: string) {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return (name.slice(0, 2) || "?").toUpperCase();
-}
+import { useUser } from "../providers/UserProvider";
+import { initials } from "@/lib/format";
 
 export default function Navbar() {
   const router = useRouter();

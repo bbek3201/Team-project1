@@ -1,33 +1,37 @@
-"use client";
+import { FieldMessage } from "../../components/FieldMessage";
+import { Spinner } from "../../components/Spinner";
 
-import { useState } from "react";
-import { isValidEmail } from "@/lib/validation";
-import { FieldMessage } from "../components/FieldMessage";
-import { Spinner } from "../components/Spinner";
-import { AuthLayout } from "../components/AuthLayout";
-import { useAuthFlow } from "../components/useAuthFlow";
-
-export default function LoginPage() {
-  const { loading, error, submit } = useAuthFlow("/api/auth/login");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [emailTouched, setEmailTouched] = useState(false);
-
-  const emailError =
-    email && !isValidEmail(email) ? "Please enter a valid email" : "";
-
-  async function handleLogin(e?: React.FormEvent) {
-    e?.preventDefault();
-    setEmailTouched(true);
-    if (!isValidEmail(email) || !password) return;
-    await submit({ email, password });
-  }
-
+export function AccountStep({
+  username,
+  email,
+  setEmail,
+  emailTouched,
+  setEmailTouched,
+  emailError,
+  password,
+  setPassword,
+  error,
+  loading,
+  onSubmit,
+}: {
+  username: string;
+  email: string;
+  setEmail: (v: string) => void;
+  emailTouched: boolean;
+  setEmailTouched: (v: boolean) => void;
+  emailError: string;
+  password: string;
+  setPassword: (v: string) => void;
+  error: string;
+  loading: boolean;
+  onSubmit: (e?: React.FormEvent) => void;
+}) {
   return (
-    <AuthLayout linkHref="/signup" linkLabel="Sign up">
-      <h2 className="mb-6 text-3xl font-bold">Welcome back</h2>
+    <>
+      <h2 className="mb-2 text-3xl font-bold">Welcome, {username}</h2>
+      <p className="mb-6 text-gray-500">Connect email and set a password</p>
 
-      <form onSubmit={handleLogin}>
+      <form onSubmit={onSubmit}>
         <div className="mb-4">
           <label className="mb-1 block font-medium">Email</label>
           <input
@@ -59,12 +63,12 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={!email || !password || loading}
-          className="flex w-full items-center justify-center gap-2 rounded-md bg-black py-3 font-medium text-white disabled:opacity-60"
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-gray-300 py-3 font-medium text-gray-700 disabled:opacity-60 enabled:bg-black enabled:text-white"
         >
           {loading && <Spinner />}
-          {loading ? "Signing in..." : "Continue"}
+          {loading ? "Creating..." : "Continue"}
         </button>
       </form>
-    </AuthLayout>
+    </>
   );
 }

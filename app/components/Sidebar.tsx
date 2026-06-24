@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useUser } from "../providers/user-provider";
+import { useUser } from "../providers/UserProvider";
 
 export default function Sidebar() {
   const pathname = usePathname();
