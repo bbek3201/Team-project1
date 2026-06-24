@@ -24,9 +24,14 @@ export async function GET(req: NextRequest) {
     include: { profile: true },
   });
 
-  // Date range filter
-  const where: { recipientId: number; createdAt?: { gte: Date } } = {
+  // Date range filter — only completed donations count (legacy rows have no transaction)
+  const where: {
+    recipientId: number;
+    createdAt?: { gte: Date };
+    OR: ({ transaction: { status: string } } | { transactionId: null })[];
+  } = {
     recipientId: auth.userId,
+    OR: [{ transaction: { status: "COMPLETED" } }, { transactionId: null }],
   };
   if (range !== "all") {
     const days = range === "90" ? 90 : 30;

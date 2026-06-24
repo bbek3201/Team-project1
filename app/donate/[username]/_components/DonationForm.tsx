@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Spinner } from "../../../components/Spinner";
 import { CoffeeIcon } from "./Icons";
 import { AMOUNTS } from "./types";
+import { PaymentModal } from "./PaymentModal";
 
 export function DonationForm({
   username,
@@ -17,41 +16,10 @@ export function DonationForm({
   isOwner: boolean;
   onDone: () => void;
 }) {
-  const router = useRouter();
   const [amount, setAmount] = useState(5);
   const [social, setSocial] = useState("");
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  async function handleSend() {
-    setError("");
-    setLoading(true);
-    try {
-      const res = await fetch("/api/donations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          recipientUsername: username,
-          amount,
-          specialMessage: message,
-          socialURLOrBuyMeACoffee: social,
-        }),
-      });
-      const data = await res.json();
-      if (res.status === 401) {
-        router.push("/login");
-        return;
-      }
-      if (!res.ok) {
-        setError(data.error ?? "Something went wrong");
-        return;
-      }
-      onDone();
-    } finally {
-      setLoading(false);
-    }
-  }
+  const [showPay, setShowPay] = useState(false);
 
   return (
     <div className="h-fit rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -95,16 +63,27 @@ export function DonationForm({
         className="mb-4 w-full resize-none rounded-md border border-gray-200 px-4 py-3 text-sm outline-none focus:border-gray-400 disabled:bg-gray-50"
       />
 
-      {error && <p className="mb-3 text-sm text-red-500">⊗ {error}</p>}
-
       <button
-        onClick={handleSend}
-        disabled={isOwner || !social || loading}
+        onClick={() => setShowPay(true)}
+        disabled={isOwner || !social}
         className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#18181b] py-3 text-sm font-medium text-white hover:bg-black disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500"
       >
-        {loading && <Spinner />}
-        {loading ? "Sending…" : "Support"}
+        Support
       </button>
+
+      {showPay && (
+        <PaymentModal
+          recipientUsername={username}
+          amount={amount}
+          social={social}
+          message={message}
+          onClose={() => setShowPay(false)}
+          onCompleted={() => {
+            setShowPay(false);
+            onDone();
+          }}
+        />
+      )}
     </div>
   );
 }

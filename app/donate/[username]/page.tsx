@@ -105,15 +105,6 @@ export default function DonatePage({
     return <DonateSkeleton />;
   }
 
-  if (done) {
-    return (
-      <DonationComplete
-        creator={creator}
-        onReturn={() => router.push("/explore")}
-      />
-    );
-  }
-
   return (
     <div className="min-h-screen bg-white text-gray-900">
       <Navbar />
@@ -155,6 +146,10 @@ export default function DonatePage({
           onClose={() => setEditOpen(false)}
           onSaved={handleProfileSaved}
         />
+      )}
+
+      {done && (
+        <DonationComplete creator={creator} onClose={() => setDone(false)} />
       )}
     </div>
   );

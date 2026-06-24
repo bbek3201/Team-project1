@@ -5,7 +5,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-
 }
 
 model User {
@@ -59,4 +58,18 @@ model Donation {
   recipientId             Int
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
+
+  transaction             Transaction? @relation(fields: [transactionId], references: [id])
+  transactionId           String?      @unique
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  amount      Float
+  status      String   @default("PENDING") // PENDING, COMPLETED, FAILED
+  paymentType String? // CARD, QPAY
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  donation    Donation?
 }
