@@ -18,6 +18,7 @@ export async function POST(req: NextRequest) {
 
   const user = await prisma.user.findFirst({
     where: { OR: [{ email: identifier }, { username: identifier }] },
+    include: { profile: true },
   });
   if (!user) {
     return NextResponse.json(
@@ -40,6 +41,7 @@ export async function POST(req: NextRequest) {
     user: { id: user.id, username: user.username, email: user.email },
     hasProfile: !!user.profileId,
     hasBankCard: !!user.bankCardId,
+    hasSuccessMessage: !!user.profile?.successMessage,
     ...tokens,
   });
 

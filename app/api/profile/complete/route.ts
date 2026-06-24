@@ -21,7 +21,9 @@ export async function POST(req: NextRequest) {
       avatarImage: avatarImage || "",
       socialMediaURL,
       backgroundImage: "",
-      successMessage: "Thank you for your support!",
+      // Left empty on purpose — the user fills this in the final onboarding
+      // step (/success-message) before they go live.
+      successMessage: "",
     },
   });
 

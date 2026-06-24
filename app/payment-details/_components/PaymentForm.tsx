@@ -96,10 +96,10 @@ export function PaymentForm() {
         setError(data.error);
         return;
       }
-      // Onboarding finished — refresh the cached session so the header
-      // avatar/name show up immediately on the home page.
+      // Refresh the cached session so the onboarding guards see the saved
+      // card and route us forward to the final success-message step.
       await refresh();
-      router.push("/");
+      router.push("/success-message");
     } finally {
       setLoading(false);
     }

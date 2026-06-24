@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
     user: { id: user.id, username: user.username, email: user.email },
     hasProfile: false,
     hasBankCard: false,
+    hasSuccessMessage: false,
     ...tokens,
   });
 

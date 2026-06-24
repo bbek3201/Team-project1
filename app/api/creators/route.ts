@@ -6,8 +6,11 @@ export async function GET(req: NextRequest) {
   const auth = getUserFromRequest(req);
 
   const users = await prisma.user.findMany({
-    // only list users who finished the complete-profile onboarding step
-    where: { profileId: { not: null } },
+    // only list fully onboarded users: profile + bank card + success message
+    where: {
+      bankCardId: { not: null },
+      profile: { is: { successMessage: { not: "" } } },
+    },
     include: { profile: true },
     orderBy: { createdAt: "desc" },
   });

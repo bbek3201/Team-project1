@@ -26,6 +26,7 @@ export async function GET(req: NextRequest) {
       email: me.email,
       hasProfile: !!me.profileId,
       hasBankCard: !!me.bankCardId,
+      hasSuccessMessage: !!me.profile?.successMessage,
     },
   });
 }

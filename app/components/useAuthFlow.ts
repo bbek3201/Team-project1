@@ -30,7 +30,13 @@ export function useAuthFlow(endpoint: string) {
       }
       storeTokens(data);
       await refresh();
-      router.push(onboardingPath(data.hasProfile, data.hasBankCard));
+      router.push(
+        onboardingPath(
+          data.hasProfile,
+          data.hasBankCard,
+          data.hasSuccessMessage,
+        ),
+      );
     } finally {
       setLoading(false);
     }

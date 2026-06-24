@@ -12,10 +12,16 @@ export default function PaymentDetailsPage() {
   const { user, loading: userLoading } = useUser();
 
   // Send users to the right step: those who haven't completed their profile
-  // go back, and those who already added a card skip ahead to home.
+  // go back, and those who already added a card skip ahead.
   useEffect(() => {
     if (!userLoading && user && (!user.hasProfile || user.hasBankCard)) {
-      router.replace(onboardingPath(user.hasProfile, user.hasBankCard));
+      router.replace(
+        onboardingPath(
+          user.hasProfile,
+          user.hasBankCard,
+          user.hasSuccessMessage,
+        ),
+      );
     }
   }, [userLoading, user, router]);
 
