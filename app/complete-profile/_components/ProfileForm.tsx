@@ -109,8 +109,8 @@ export function ProfileForm() {
         setServerError(data.error);
         return;
       }
-      // Refresh the cached session so the header avatar/name update
-      // immediately instead of only after a full page reload.
+      // Refresh the cached session so the onboarding guards see the completed
+      // profile and route us forward to the payment step (not back here).
       await refresh();
       router.push("/payment-details");
     } finally {

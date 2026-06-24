@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "../providers/UserProvider";
 import { storeTokens } from "@/lib/auth-client";
+import { onboardingPath } from "@/lib/onboarding";
 
 // Shared login/signup submit flow: posts credentials, persists tokens,
 // refreshes the session, then routes by onboarding state.
@@ -29,7 +30,7 @@ export function useAuthFlow(endpoint: string) {
       }
       storeTokens(data);
       await refresh();
-      router.push(data.hasProfile ? "/" : "/complete-profile");
+      router.push(onboardingPath(data.hasProfile, data.hasBankCard));
     } finally {
       setLoading(false);
     }

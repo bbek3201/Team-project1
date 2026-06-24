@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useUser } from "../../providers/UserProvider";
 import { FieldMessage } from "../../components/FieldMessage";
 import { Spinner } from "../../components/Spinner";
 import {
@@ -16,6 +17,7 @@ import {
 
 export function PaymentForm() {
   const router = useRouter();
+  const { refresh } = useUser();
   const [country, setCountry] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -94,6 +96,9 @@ export function PaymentForm() {
         setError(data.error);
         return;
       }
+      // Onboarding finished — refresh the cached session so the header
+      // avatar/name show up immediately on the home page.
+      await refresh();
       router.push("/");
     } finally {
       setLoading(false);

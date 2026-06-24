@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { onboardingPath } from "@/lib/onboarding";
 import { useUser } from "../providers/UserProvider";
 import { OnboardingHeader } from "../components/OnboardingHeader";
 import { ProfileForm } from "./_components/ProfileForm";
@@ -10,10 +11,11 @@ export default function CompleteProfilePage() {
   const router = useRouter();
   const { user, loading: userLoading } = useUser();
 
-  // Users who already completed their profile shouldn't see this onboarding page
+  // Users who already completed their profile should skip ahead to the next
+  // onboarding step (payment details) or home.
   useEffect(() => {
     if (!userLoading && user?.hasProfile) {
-      router.replace("/");
+      router.replace(onboardingPath(user.hasProfile, user.hasBankCard));
     }
   }, [userLoading, user, router]);
 

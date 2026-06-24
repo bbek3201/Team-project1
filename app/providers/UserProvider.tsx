@@ -17,6 +17,7 @@ export type CurrentUser = {
   username: string;
   email: string;
   hasProfile: boolean;
+  hasBankCard: boolean;
 };
 
 type UserContextValue = {

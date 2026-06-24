@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
       username: me.username,
       email: me.email,
       hasProfile: !!me.profileId,
+      hasBankCard: !!me.bankCardId,
     },
   });
 }
