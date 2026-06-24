@@ -15,7 +15,10 @@ export async function GET(
   }
 
   const donations = await prisma.donation.findMany({
-    where: { recipientId: creator.id },
+    where: {
+      recipientId: creator.id,
+      OR: [{ transaction: { status: "COMPLETED" } }, { transactionId: null }],
+    },
     orderBy: { createdAt: "desc" },
   });
 

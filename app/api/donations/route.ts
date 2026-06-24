@@ -8,12 +8,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const { recipientUsername, amount, specialMessage, socialURLOrBuyMeACoffee } =
-    await req.json();
+  const {
+    recipientUsername,
+    amount,
+    specialMessage,
+    socialURLOrBuyMeACoffee,
+    paymentType,
+  } = await req.json();
 
   if (!recipientUsername || !amount || !socialURLOrBuyMeACoffee) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
+
+  const method = paymentType === "QPAY" ? "QPAY" : "CARD";
 
   const amt = parseInt(String(amount), 10);
   if (Number.isNaN(amt) || amt <= 0) {
@@ -33,20 +40,35 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const donation = await prisma.donation.create({
-    data: {
-      amount: amt,
-      specialMessage: specialMessage ?? "",
-      socialURLOrBuyMeACoffee,
-      donerId: auth.userId,
-      recipientId: recipient.id,
-    },
+  // Card payments succeed immediately; QPay stays pending until the QR link is opened.
+  const status = method === "CARD" ? "COMPLETED" : "PENDING";
+
+  const transaction = await prisma.$transaction(async (tx) => {
+    const created = await tx.transaction.create({
+      data: { amount: amt, status, paymentType: method },
+    });
+    await tx.donation.create({
+      data: {
+        amount: amt,
+        specialMessage: specialMessage ?? "",
+        socialURLOrBuyMeACoffee,
+        donerId: auth.userId,
+        recipientId: recipient.id,
+        transactionId: created.id,
+      },
+    });
+    if (status === "COMPLETED") {
+      await tx.user.update({
+        where: { id: recipient.id },
+        data: { receivedDonations: { increment: amt } },
+      });
+    }
+    return created;
   });
 
-  await prisma.user.update({
-    where: { id: recipient.id },
-    data: { receivedDonations: { increment: amt } },
+  return NextResponse.json({
+    ok: true,
+    transactionId: transaction.id,
+    status: transaction.status,
   });
-
-  return NextResponse.json({ ok: true, donation });
 }
