@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "../../components/Navbar";
 import { useUser } from "../../providers/UserProvider";
 import { apiFetch } from "@/lib/api";
+import { compressImage, preloadImage } from "@/lib/image";
 import { CoverBand } from "./_components/CoverBand";
 import { DonateSkeleton } from "./_components/DonateSkeleton";
 import { DonationComplete } from "./_components/DonationComplete";
@@ -57,10 +58,14 @@ export default function DonatePage({
   async function handleCoverChange(file: File) {
     setCoverUploading(true);
     try {
-      const response = await fetch(`/api/avatar/upload?filename=${file.name}`, {
-        method: "POST",
-        body: file,
-      });
+      const compressed = await compressImage(file);
+      const response = await fetch(
+        `/api/avatar/upload?filename=${encodeURIComponent(compressed.name)}`,
+        {
+          method: "POST",
+          body: compressed,
+        },
+      );
       if (!response.ok) throw new Error("Failed to upload image");
       const blob = await response.json();
       const res = await apiFetch("/api/account", {
@@ -72,6 +77,7 @@ export default function DonatePage({
         router.push("/login");
         return;
       }
+      await preloadImage(blob.url);
       setCreator((c) => (c ? { ...c, backgroundImage: blob.url } : c));
     } finally {
       setCoverUploading(false);
@@ -135,6 +141,7 @@ export default function DonatePage({
             username={username}
             creatorName={creator.name}
             isOwner={isOwner}
+            isLoggedIn={!!user}
             onDone={() => setDone(true)}
           />
         </div>

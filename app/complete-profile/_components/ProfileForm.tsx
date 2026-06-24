@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { compressImage } from "@/lib/image";
+import { useUser } from "../../providers/UserProvider";
 import { Spinner } from "../../components/Spinner";
 import { CameraIcon } from "./CameraIcon";
 import { FieldError } from "./FieldError";
@@ -18,6 +20,7 @@ type FieldErrors = {
 
 export function ProfileForm() {
   const router = useRouter();
+  const { refresh } = useUser();
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState("");
   const [name, setName] = useState("");
@@ -78,9 +81,10 @@ export function ProfileForm() {
     try {
       let avatarImage = "";
       if (photoFile) {
+        const compressed = await compressImage(photoFile);
         const response = await fetch(
-          `/api/avatar/upload?filename=${photoFile.name}`,
-          { method: "POST", body: photoFile },
+          `/api/avatar/upload?filename=${encodeURIComponent(compressed.name)}`,
+          { method: "POST", body: compressed },
         );
         if (!response.ok) {
           setServerError("Failed to upload image");
@@ -105,6 +109,9 @@ export function ProfileForm() {
         setServerError(data.error);
         return;
       }
+      // Refresh the cached session so the header avatar/name update
+      // immediately instead of only after a full page reload.
+      await refresh();
       router.push("/payment-details");
     } finally {
       setLoading(false);
