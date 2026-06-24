@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { isValidEmail } from "@/lib/validation";
+import { isValidEmail, isValidUsername } from "@/lib/validation";
 import { FieldMessage } from "../components/FieldMessage";
 import { Spinner } from "../components/Spinner";
 import { AuthLayout } from "../components/AuthLayout";
@@ -9,18 +9,22 @@ import { useAuthFlow } from "../components/useAuthFlow";
 
 export default function LoginPage() {
   const { loading, error, submit } = useAuthFlow("/api/auth/login");
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [emailTouched, setEmailTouched] = useState(false);
+  const [identifierTouched, setIdentifierTouched] = useState(false);
 
-  const emailError =
-    email && !isValidEmail(email) ? "Please enter a valid email" : "";
+  const isValidIdentifier =
+    isValidEmail(identifier) || isValidUsername(identifier);
+  const identifierError =
+    identifier && !isValidIdentifier
+      ? "Please enter a valid email or username"
+      : "";
 
   async function handleLogin(e?: React.FormEvent) {
     e?.preventDefault();
-    setEmailTouched(true);
-    if (!isValidEmail(email) || !password) return;
-    await submit({ email, password });
+    setIdentifierTouched(true);
+    if (!isValidIdentifier || !password) return;
+    await submit({ identifier, password });
   }
 
   return (
@@ -29,19 +33,21 @@ export default function LoginPage() {
 
       <form onSubmit={handleLogin}>
         <div className="mb-4">
-          <label className="mb-1 block font-medium">Email</label>
+          <label className="mb-1 block font-medium">Email or username</label>
           <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            onBlur={() => setEmailTouched(true)}
-            placeholder="Enter email here"
+            type="text"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
+            onBlur={() => setIdentifierTouched(true)}
+            placeholder="Enter email or username here"
             className={`w-full rounded-md border px-4 py-3 outline-none ${
-              emailTouched && emailError ? "border-red-400" : "border-gray-300"
+              identifierTouched && identifierError
+                ? "border-red-400"
+                : "border-gray-300"
             }`}
           />
           <FieldMessage
-            message={emailTouched ? emailError : ""}
+            message={identifierTouched ? identifierError : ""}
             className="mt-1.5"
           />
         </div>
@@ -58,7 +64,7 @@ export default function LoginPage() {
 
         <button
           type="submit"
-          disabled={!email || !password || loading}
+          disabled={!identifier || !password || loading}
           className="flex w-full items-center justify-center gap-2 rounded-md bg-black py-3 font-medium text-white disabled:opacity-60"
         >
           {loading && <Spinner />}

@@ -4,16 +4,24 @@ import bcrypt from "bcrypt";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const { email, password } = await req.json();
+  const body = await req.json();
+  const identifier: string | undefined = (
+    body.identifier ??
+    body.email ??
+    ""
+  ).trim();
+  const password: string | undefined = body.password;
 
-  if (!email || !password) {
+  if (!identifier || !password) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findFirst({
+    where: { OR: [{ email: identifier }, { username: identifier }] },
+  });
   if (!user) {
     return NextResponse.json(
-      { error: "Invalid email or password" },
+      { error: "Invalid email/username or password" },
       { status: 401 },
     );
   }
@@ -21,7 +29,7 @@ export async function POST(req: NextRequest) {
   const validPassword = await bcrypt.compare(password, user.password);
   if (!validPassword) {
     return NextResponse.json(
-      { error: "Invalid email or password" },
+      { error: "Invalid email/username or password" },
       { status: 401 },
     );
   }
