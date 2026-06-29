@@ -75,11 +75,12 @@ model Transaction {
 }
 
 model PasswordResetOtp {
-  id        String   @id @default(uuid())
-  email     String
-  codeHash  String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  @@index([email])
+  id            String    @id @default(uuid())
+  email         String    @unique
+  codeHash      String
+  expiresAt     DateTime
+  attempts      Int       @default(0)
+  resendCount   Int       @default(0)
+  cooldownUntil DateTime?
+  createdAt     DateTime  @default(now())
 }

@@ -16,6 +16,7 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
 
   const [email, setEmail] = useState("");
   const [emailTouched, setEmailTouched] = useState(false);
@@ -50,7 +51,7 @@ export default function ForgotPasswordPage() {
       const res = await fetch("/api/auth/password-reset/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, resend: false }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -58,6 +59,7 @@ export default function ForgotPasswordPage() {
         return;
       }
       setCode("");
+      setNotice("");
       setStep(2);
     } finally {
       setLoading(false);
@@ -66,13 +68,21 @@ export default function ForgotPasswordPage() {
 
   async function handleResend() {
     setError("");
+    setNotice("");
     setResending(true);
     try {
-      await fetch("/api/auth/password-reset/request", {
+      const res = await fetch("/api/auth/password-reset/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, resend: true }),
       });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Something went wrong");
+        return;
+      }
+      setCode("");
+      setNotice("A new code has been sent to your email.");
     } finally {
       setResending(false);
     }
@@ -82,6 +92,7 @@ export default function ForgotPasswordPage() {
     e?.preventDefault();
     if (code.length !== 6) return;
     setError("");
+    setNotice("");
     setLoading(true);
     try {
       const res = await fetch("/api/auth/password-reset/verify", {
@@ -144,6 +155,7 @@ export default function ForgotPasswordPage() {
           code={code}
           setCode={setCode}
           error={error}
+          notice={notice}
           loading={loading}
           resending={resending}
           onSubmit={handleOtpSubmit}

@@ -10,6 +10,7 @@ export function OtpStep({
   code,
   setCode,
   error,
+  notice,
   loading,
   resending,
   onSubmit,
@@ -19,6 +20,7 @@ export function OtpStep({
   code: string;
   setCode: (v: string) => void;
   error: string;
+  notice: string;
   loading: boolean;
   resending: boolean;
   onSubmit: (e?: React.FormEvent) => void;
@@ -52,6 +54,11 @@ export function OtpStep({
 
         {error && (
           <p className="mb-2 mt-2 text-center text-sm text-red-500">⊗ {error}</p>
+        )}
+        {!error && notice && (
+          <p className="mb-2 mt-2 text-center text-sm text-green-600">
+            {notice}
+          </p>
         )}
 
         <button

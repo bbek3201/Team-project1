@@ -19,12 +19,15 @@ export async function POST(req: NextRequest) {
 
   const normalizedEmail = String(email).trim();
 
-  const record = await prisma.passwordResetOtp.findFirst({
-    where: { email: normalizedEmail, expiresAt: { gt: new Date() } },
-    orderBy: { createdAt: "desc" },
+  const record = await prisma.passwordResetOtp.findUnique({
+    where: { email: normalizedEmail },
   });
 
-  if (!record || !(await verifyOtp(String(code), record.codeHash))) {
+  if (
+    !record ||
+    record.expiresAt <= new Date() ||
+    !(await verifyOtp(String(code), record.codeHash))
+  ) {
     return NextResponse.json(
       { error: "Invalid or expired code" },
       { status: 400 },
