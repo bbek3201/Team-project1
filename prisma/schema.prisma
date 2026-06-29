@@ -73,3 +73,13 @@ model Transaction {
 
   donation    Donation?
 }
+
+model PasswordResetOtp {
+  id        String   @id @default(uuid())
+  email     String
+  codeHash  String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}

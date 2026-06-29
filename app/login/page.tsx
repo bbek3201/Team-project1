@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { isValidEmail, isValidUsername } from "@/lib/validation";
 import { FieldMessage } from "../components/FieldMessage";
@@ -52,7 +53,15 @@ export default function LoginPage() {
           />
         </div>
 
-        <label className="mb-1 block font-medium">Password</label>
+        <div className="mb-1 flex items-center justify-between">
+          <label className="block font-medium">Password</label>
+          <Link
+            href="/forgot-password"
+            className="text-sm font-medium text-blue-600 hover:text-blue-900"
+          >
+            Forgot password?
+          </Link>
+        </div>
         <input
           type="password"
           value={password}
